@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Bionation</string>
+    <string name="title_activity_bottom_navigation">MainActivity</string>
+    <string name="explore">Explore</string>
+    <string name="camera">Camera</string>
+    <string name="updates">Updates</string>
+    <string name="settings">Settings</string>
+</resources>

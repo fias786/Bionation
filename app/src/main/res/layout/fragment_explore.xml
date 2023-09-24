@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.explore.ExploreFragment">
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/ExpandedAppBar"
+        android:layout_width="match_parent"
+        android:layout_height="85dp"
+        app:cardBackgroundColor="@color/white"
+        android:visibility="gone"
+        android:outlineSpotShadowColor="@color/white"
+        android:outlineAmbientShadowColor="@color/white"
+        android:clickable="true"
+        android:focusable="true"
+        >
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            >
+
+            <ImageButton
+                android:id="@+id/BottomSheetDownArrow"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginTop="48dp"
+                android:layout_marginStart="20dp"
+                android:background="@drawable/ic_keyboard_arrow_down_24dp"
+                android:backgroundTint="@color/black"
+                />
+
+            <ImageButton
+                android:id="@+id/BottomSheetThreeDot"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_marginTop="50dp"
+                android:layout_marginEnd="20dp"
+                android:background="@drawable/ic_more_vert_24dp"
+                android:backgroundTint="@color/black"
+                android:layout_alignParentEnd="true"
+                />
+        </RelativeLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="50dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        app:cardCornerRadius="50dp"
+        app:cardBackgroundColor="@color/white"
+        >
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:startIconDrawable="@drawable/ic_more_vert_24dp"
+                app:startIconTint="@color/black"
+                app:boxBackgroundColor="@color/white"
+                app:placeholderText="Search here"
+                app:placeholderTextColor="@color/dark_grey"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+
+                >
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:textColor="@color/black"
+                    android:textSize="25sp"
+
+                    />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+
+
+
+        </RelativeLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <fragment
+        android:id="@+id/Map"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        />
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/BottomSheet"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:behavior_peekHeight="160dp"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+        app:cardElevation="10dp"
+        android:layout_gravity="bottom"
+        app:cardBackgroundColor="@color/white"
+        app:cardCornerRadius="10dp"
+        >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/BottomSheet_ObservationNameText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginBottom="10dp"
+                android:textColor="#434343"
+                android:textSize="25sp" />
+
+            <TextView
+                android:id="@+id/BottomSheet_LocationAddressText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="80dp"
+                android:layout_marginBottom="10dp"
+                android:textColor="#787878"
+                />
+
+            <ImageView
+                android:id="@+id/BottomSheet_Image"
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginBottom="10dp"
+                android:cropToPadding="true"
+                android:scaleType="centerCrop" />
+
+            <TextView
+                android:id="@+id/BottomSheet_ObservationWikipediaText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginBottom="10dp"
+                android:textColor="#787878"
+                android:textSize="16sp"
+                android:justificationMode="inter_word"
+                />
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

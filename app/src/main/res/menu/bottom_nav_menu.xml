@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/navigation_explore"
+        android:enabled="true"
+        android:icon="@drawable/ic_home_black_24dp"
+        android:title="@string/explore" />
+
+    <item
+        android:id="@+id/navigation_camera"
+        android:enabled="true"
+        android:icon="@drawable/ic_dashboard_black_24dp"
+        android:title="@string/camera" />
+
+    <item
+        android:id="@+id/navigation_updates"
+        android:enabled="true"
+        android:icon="@drawable/ic_notifications_black_24dp"
+        android:title="@string/updates" />
+
+    <item
+        android:id="@+id/navigation_settings"
+        android:enabled="true"
+        android:icon="@drawable/ic_notifications_black_24dp"
+        android:title="@string/settings" />
+
+</menu>
