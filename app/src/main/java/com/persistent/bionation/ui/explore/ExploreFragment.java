@@ -98,7 +98,6 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
     private LocationCallback mLocationCallback;
     private static final long UPDATE_INTERVAL_IN_MILLISECONDS = 1000;
     private static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS = UPDATE_INTERVAL_IN_MILLISECONDS / 2;
-    private LatLngBounds mapPositionLatLngBounds;
     TileOverlay gridTileOverlay;
     TileOverlay pointTileOverlay;
 
