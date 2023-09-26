@@ -2,35 +2,37 @@ package com.persistent.bionation.ui.explore;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.Html;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.cardview.widget.CardView;
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.ActivityCompat;
-import androidx.core.view.ViewCompat;
 import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
@@ -55,7 +57,7 @@ import com.google.android.gms.maps.model.UrlTileProvider;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
-import com.persistent.bionation.MainActivity;
+import com.google.android.material.card.MaterialCardView;
 import com.persistent.bionation.Observation;
 import com.persistent.bionation.ObservationResult;
 import com.persistent.bionation.Place;
@@ -72,8 +74,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Locale;
-import java.util.Objects;
-import java.util.concurrent.ExecutionException;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -86,10 +86,10 @@ import retrofit2.http.GET;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
-public class ExploreFragment extends Fragment implements LocationListener, OnMapReadyCallback, TileProvider {
+public class ExploreFragment extends Fragment implements LocationListener, OnMapReadyCallback, TileProvider, MicBottomSheetDialog.BottomSheetListener {
 
     private static final String TAG = "MainActivity";
-    BottomNavigationView bottomNavigationView;
+    private BottomNavigationView bottomNavigationView;
 
     private static final String API_URL = "https://api.inaturalist.org/v1/" ;
     double lat=0.0,lng=0.0;
@@ -98,11 +98,12 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
     private LocationCallback mLocationCallback;
     private static final long UPDATE_INTERVAL_IN_MILLISECONDS = 1000;
     private static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS = UPDATE_INTERVAL_IN_MILLISECONDS / 2;
+    private LatLngBounds mapPositionLatLngBounds;
     TileOverlay gridTileOverlay;
     TileOverlay pointTileOverlay;
 
-    public String getTileUrl(int x, int y, int z) {
-        return String.format(Locale.ENGLISH, API_URL + "points/%d/%d/%d.png",z,x,y);
+    public String getTileUrl(int x, int y, int z, String text) {
+        return String.format(Locale.ENGLISH, API_URL + "points/%d/%d/%d.png?taxon_name=%s",z,x,y,text);
     }
 
     @Nullable
@@ -110,7 +111,7 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
     public Tile getTile(int i, int i1, int i2) {
         byte[] tileImage = null;
         try {
-            tileImage = getTileImage(i, i1, i2);
+            tileImage = getTileImage(i, i1, i2, placeText);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -121,11 +122,11 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
         return NO_TILE;
     }
 
-    private byte[] getTileImage(int i, int i1, int i2) throws IOException {
+    private byte[] getTileImage(int i, int i1, int i2, String text) throws IOException {
         Bitmap bmp = null;
         URL url = null;
         try {
-            url = new URL( getTileUrl(i, i1, i2));
+            url = new URL( getTileUrl(i, i1, i2, text));
             bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream());
         } catch (MalformedURLException e) {
             e.printStackTrace();
@@ -136,6 +137,20 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         bmp.compress(Bitmap.CompressFormat.PNG,100,stream);
         return stream.toByteArray();
+    }
+
+    @Override
+    public void onMicClicked(String text) {
+        Log.d(TAG, "onMicClicked: "+text);
+        if(!text.equals("")){
+            requireActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    searchText.setText(text);
+                    searchText.clearFocus();
+                }
+            });
+        }
     }
 
 
@@ -154,7 +169,8 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
         Call<Place> places(@Query("nelat") double nelat, @Query("nelng") double nelng, @Query("swlat") double swlat, @Query("swlng") double swlng);
     }
 
-    private CardView expandedAppBar;
+    private MaterialCardView expandedAppBar;
+    private MaterialCardView searchArea;
     private BottomSheetBehavior bottomSheetBehavior;
     private BottomSheetBehavior.BottomSheetCallback bottomSheetCallback;
     private TextView observationCommonNameTextView;
@@ -162,19 +178,35 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
     private ImageView bottomSheetImageVIew;
     private TextView observationWikipediaTextView;
     private ImageButton bottomSheetDownArrow;
-    MainActivity.ObservationsById observationsById;
+    private EditText searchText;
+    private ImageButton searchMic;
+    ObservationsById observationsById;
     Observation observationResult;
     Address address;
 
+    String placeText="";
 
+    private MicBottomSheetDialog micBottomSheetDialog;
+    private MicBottomSheetDialog.BottomSheetListener listener;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        listener = this::onMicClicked;
+    }
 
     @SuppressLint("MissingPermission")
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_explore, container, false);
+        final float scale = getContext().getResources().getDisplayMetrics().density;
         bottomNavigationView = requireActivity().findViewById(R.id.nav_view);
         expandedAppBar = root.findViewById(R.id.ExpandedAppBar);
         bottomSheetDownArrow = root.findViewById(R.id.BottomSheetDownArrow);
+
+        searchArea = root.findViewById(R.id.SearchArea);
+        searchText = root.findViewById(R.id.SearchEditText);
+        searchMic = root.findViewById(R.id.SearchMic);
 
         observationCommonNameTextView = root.findViewById(R.id.BottomSheet_ObservationNameText);
         bottomSheetImageVIew = root.findViewById(R.id.BottomSheet_Image);
@@ -187,11 +219,96 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
             }
         });
 
+
         bottomSheetDownArrow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 expandedAppBar.setVisibility(View.INVISIBLE);
                 bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
+            }
+        });
+
+        searchText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                placeText = charSequence.toString();
+                Log.d(TAG, "onTextChanged: " + charSequence + " " + i  + " "+ i1 + " "+i2);
+
+                if(gridTileOverlay!=null){
+                    gridTileOverlay.remove();
+                }
+                if(pointTileOverlay!=null){
+                    pointTileOverlay.remove();
+                }
+
+                TileProvider gridTileProvider = new UrlTileProvider(256,256) {
+                    @Nullable
+                    @Override
+                    public URL getTileUrl(int i, int i1, int i2) {
+                        if( i2 > 10){
+                            return null;
+                        }
+                        String s  = String.format(Locale.ENGLISH, API_URL + "grid/%d/%d/%d.png?taxon_name=%s",i2,i,i1,placeText);
+                        Log.d(TAG, "getTileUrl: "+s);
+                        try {
+                            return new URL(s);
+                        }catch (MalformedURLException e){
+                            throw  new AssertionError(e);
+                        }
+                    }
+                };
+
+                TileProvider pointTileProvider = new UrlTileProvider(256,256) {
+                    @Nullable
+                    @Override
+                    public URL getTileUrl(int i, int i1, int i2) {
+                        if( i2 <= 10){
+                            return null;
+                        }
+                        String s  = String.format(Locale.ENGLISH, API_URL + "points/%d/%d/%d.png?taxon_name=%s",i2,i,i1,placeText);
+                        Log.d(TAG, "getTileUrl: "+s);
+                        try {
+                            return new URL(s);
+                        }catch (MalformedURLException e){
+                            throw  new AssertionError(e);
+                        }
+                    }
+
+                };
+
+                gridTileOverlay = mMap.addTileOverlay(new TileOverlayOptions().transparency((float)0.25).tileProvider(gridTileProvider));
+                pointTileOverlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(pointTileProvider));
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
+
+        searchText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
+                if(actionId == EditorInfo.IME_ACTION_SEARCH){
+                    //searchOnMap();
+                    searchText.clearFocus();
+                    InputMethodManager imm = (InputMethodManager) requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(root.getWindowToken(),0);
+                }
+                return true;
+            }
+        });
+
+        searchMic.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                micBottomSheetDialog = new MicBottomSheetDialog(listener);
+                micBottomSheetDialog.show(getChildFragmentManager(),"micBottomSheet");
             }
         });
 
@@ -217,7 +334,6 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
         bottomSheetBehavior.setHideable(true);
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         bottomSheetBehavior.setFitToContents(false);
-        final float scale = getContext().getResources().getDisplayMetrics().density;
         int expandedOffsetPixels = (int) (80 * scale + 0.5f);
         bottomSheetBehavior.setExpandedOffset(expandedOffsetPixels);
         bottomSheetCallback = new BottomSheetBehavior.BottomSheetCallback() {
@@ -263,7 +379,9 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
                 }
 
                 if(slideOffset <= 0.432){
-                    
+                    searchArea.setVisibility(View.VISIBLE);
+                }else{
+                    searchArea.setVisibility(View.INVISIBLE);
                 }
                 
                 if(slideOffset > -1.0){
@@ -292,7 +410,7 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
 
         //Observations observations = retrofit.create(Observations.class);
         //Places places = retrofit.create(Places.class);
-        observationsById = retrofit.create(MainActivity.ObservationsById.class);
+        observationsById = retrofit.create(ObservationsById.class);
 
         GoogleMapOptions googleMapOptions = new GoogleMapOptions();
         googleMapOptions.mapType(GoogleMap.MAP_TYPE_SATELLITE).compassEnabled(false)
@@ -332,6 +450,29 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
 
         });
 
+        OnBackPressedCallback backPressedCallback = new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if(!bottomNavigationView.getMenu().getItem(0).isChecked()){
+                    bottomNavigationView.setSelectedItemId(bottomNavigationView.getMenu().getItem(0).getItemId());
+                }else if(bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED){
+                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
+                }else if(bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_HALF_EXPANDED || bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_COLLAPSED){
+                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+                }else if(!searchText.getText().toString().equals("")){
+                    placeText = "";
+                    searchText.setText("");
+                    searchText.clearFocus();
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat,lng),13));
+                }else{
+                    requireActivity().finish();
+                }
+
+
+            }
+        };
+        requireActivity().getOnBackPressedDispatcher().addCallback(requireActivity(),backPressedCallback);
+
         return root;
     }
 
@@ -348,6 +489,13 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
     public void onMapReady(@NonNull GoogleMap googleMap) {
         mMap = googleMap;
 
+        if(gridTileOverlay!=null){
+            gridTileOverlay.remove();
+        }
+        if(pointTileOverlay!=null){
+            pointTileOverlay.remove();
+        }
+
         TileProvider gridTileProvider = new UrlTileProvider(256,256) {
             @Nullable
             @Override
@@ -355,7 +503,8 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
                 if( i2 > 10){
                     return null;
                 }
-                String s  = String.format(Locale.ENGLISH, API_URL + "grid/%d/%d/%d.png",i2,i,i1);
+                String s  = String.format(Locale.ENGLISH, API_URL + "grid/%d/%d/%d.png?taxon_name=%s",i2,i,i1,placeText);
+                Log.d(TAG, "getTileUrl: "+s);
                 try {
                     return new URL(s);
                 }catch (MalformedURLException e){
@@ -371,7 +520,8 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
                 if( i2 <= 10){
                     return null;
                 }
-                String s  = String.format(Locale.ENGLISH, API_URL + "points/%d/%d/%d.png",i2,i,i1);
+                String s  = String.format(Locale.ENGLISH, API_URL + "points/%d/%d/%d.png?taxon_name=%s",i2,i,i1,placeText);
+                Log.d(TAG, "getTileUrl: "+s);
                 try {
                     return new URL(s);
                 }catch (MalformedURLException e){
@@ -384,50 +534,32 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
         gridTileOverlay = mMap.addTileOverlay(new TileOverlayOptions().transparency((float)0.25).tileProvider(gridTileProvider));
         pointTileOverlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(pointTileProvider));
 
+
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(@NonNull LatLng latLng) {
 
                 Log.d(TAG, "onMapClick: "+latLng.toString());
+                searchText.clearFocus();
 
                 try {
                     Geocoder geocoder = new Geocoder(getContext());
-                    address = geocoder.getFromLocation(latLng.latitude,latLng.longitude,1).get(0);
+                    if(geocoder.getFromLocation(latLng.latitude,latLng.longitude,1)!=null && geocoder.getFromLocation(latLng.latitude,latLng.longitude,1).get(0)!=null) {
+                        address = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1).get(0);
+                    }
 
-                } catch (IOException e) {
+                } catch (IOException | IndexOutOfBoundsException e) {
                     e.printStackTrace();
                 }
 
                 final int zoom = (int)Math.floor(mMap.getCameraPosition().zoom);
                 final UTFPosition position = new UTFPosition(zoom, latLng.latitude, latLng.longitude);
 
-                final String pointUrl = String.format(Locale.ENGLISH,API_URL+"points/%d/%d/%d.grid.json",zoom,position.getTilePositionX(),position.getTilePositionY());
+                final String pointUrl = String.format(Locale.ENGLISH,API_URL+"points/%d/%d/%d.grid.json?taxon_name=%s",zoom,position.getTilePositionX(),position.getTilePositionY(),placeText);
 
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-
-//                        Tile gridTile = gridTileProvider.getTile(position.getTilePositionX(),position.getTilePositionY(),zoom);
-//                        Tile pointTile = pointTileProvider.getTile(position.getTilePositionX(),position.getTilePositionY(),zoom);
-//
-//
-//                        if(gridTile != NO_TILE){
-//                            Log.d(TAG, "onMapClick: GridTile "+ gridTile);
-//                        }
-//
-//                        if(pointTile != NO_TILE){
-//                            Log.d(TAG, "run: PointTile "+position.getTilePositionX()+"  " +position.getTilePositionY()+"  "+zoom);
-//                            assert pointTile != null;
-//                            try {
-//                                Log.d(TAG, "run: tile image: "+ Arrays.toString(getTileImage(position.getTilePositionX(), position.getTilePositionY(), zoom)));
-//                                Log.d(TAG, "run: point tile image "+ Arrays.toString(pointTile.data));
-//                                if(pointTile.data == getTileImage(position.getTilePositionX(),position.getTilePositionY(),zoom)){
-//                                    Log.d(TAG, "run: pintTile data: "+ Arrays.toString(pointTile.data));
-//                                }
-//                            } catch (IOException e) {
-//                                e.printStackTrace();
-//                            }
-//                        }
 
                         OkHttpClient client = new OkHttpClient();
                         Request request = new Request.Builder()
@@ -532,6 +664,6 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
     }
 
     private void getPermission() {
-        ActivityCompat.requestPermissions(requireActivity(), new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, 101);
+        ActivityCompat.requestPermissions(requireActivity(), new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.RECORD_AUDIO}, 101);
     }
 }

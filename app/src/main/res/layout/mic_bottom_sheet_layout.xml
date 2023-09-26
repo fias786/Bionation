@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/white"
+    android:layout_gravity="bottom"
+    >
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="bottom"
+        app:cardBackgroundColor="@color/white"
+        android:elevation="10dp"
+        app:cardCornerRadius="10dp"
+        >
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="40dp"
+            >
+
+            <TextView
+                android:id="@+id/micText"
+                android:layout_width="match_parent"
+                android:layout_height="400dp"
+                android:textSize="25sp"
+                android:text="Say something you want"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="20dp"
+                android:textColor="@color/black"
+                />
+
+            <TextView
+                android:id="@+id/TapMicText"
+                android:layout_above="@+id/micBottom"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:text="Tap the mic to try again"
+                android:textColor="#595959"
+                android:visibility="gone"
+                />
+
+            <ImageButton
+                android:id="@+id/micBottom"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="@drawable/ic_mic_24dp"
+                android:backgroundTint="@color/black"
+                android:layout_below="@+id/micText"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="40dp"
+                />
+        </RelativeLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

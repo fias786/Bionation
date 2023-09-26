@@ -48,42 +48,47 @@
     </com.google.android.material.card.MaterialCardView>
 
     <com.google.android.material.card.MaterialCardView
+        android:id="@+id/SearchArea"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:layout_marginTop="50dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginEnd="20dp"
+        android:layout_marginTop="40dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
         app:cardCornerRadius="50dp"
         app:cardBackgroundColor="@color/white"
+        android:visibility="visible"
         >
 
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <com.google.android.material.textfield.TextInputLayout
+            <EditText
+                android:id="@+id/SearchEditText"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                app:startIconDrawable="@drawable/ic_more_vert_24dp"
-                app:startIconTint="@color/black"
-                app:boxBackgroundColor="@color/white"
-                app:placeholderText="Search here"
-                app:placeholderTextColor="@color/dark_grey"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+                android:layout_marginStart="30dp"
+                android:layout_marginEnd="50dp"
+                android:hint="Search here"
+                android:background="#00000000"
+                android:textColor="@color/black"
+                android:textColorHint="@color/dark_grey"
+                android:textCursorDrawable="@drawable/edit_text_cursor"
+                android:singleLine="true"
+                android:imeOptions="actionSearch"
+                android:inputType="text"
+                />
 
-                >
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:textColor="@color/black"
-                    android:textSize="25sp"
-
-                    />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
-
+            <ImageButton
+                android:id="@+id/SearchMic"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_marginTop="15dp"
+                android:layout_marginEnd="20dp"
+                android:background="@drawable/ic_mic_24dp"
+                android:backgroundTint="@color/black"
+                android:layout_alignParentEnd="true"
+                />
 
 
         </RelativeLayout>

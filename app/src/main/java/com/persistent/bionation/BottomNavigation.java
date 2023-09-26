@@ -3,18 +3,26 @@ package com.persistent.bionation;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.persistent.bionation.ui.explore.MicBottomSheetDialog;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentHostCallback;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
-public class BottomNavigation extends AppCompatActivity {
+public class BottomNavigation extends AppCompatActivity{
+
+    private static final String TAG = "BottomNavigation";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
