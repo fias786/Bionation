@@ -12,4 +12,9 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
+    <com.persistent.bionation.ui.camera.OverlayView
+        android:id="@+id/CameraOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
