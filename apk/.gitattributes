@@ -1,0 +1,2 @@
+Bionation.aok filter=lfs diff=lfs merge=lfs -text
+Bionation.apk filter=lfs diff=lfs merge=lfs -text
