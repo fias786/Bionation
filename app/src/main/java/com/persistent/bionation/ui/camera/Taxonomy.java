@@ -249,19 +249,19 @@ public class Taxonomy {
     }
 
     /** Converts the predictions array into "clean" map of results (separated by rank) */
-    public static Map<String,Object> predictionToMap(Prediction prediction) {
+    public static Map<String,SpeciesObject> predictionToMap(Prediction prediction) {
 
-        Map<String,Object> event = new HashMap<>();
+        Map<String,SpeciesObject> event = new HashMap<>();
 
-        Map<Float, Object> ranks = new HashMap<>();
+        Map<Float, SpeciesObject> ranks = new HashMap<>();
 
-        Map<String,Object> result = nodeToMap(prediction);
+        Map<String,SpeciesObject> result = nodeToMap(prediction);
 
         if (!ranks.containsKey(prediction.node.rank)) {
-            ranks.put(prediction.node.rank, new HashMap<>());
+            ranks.put(prediction.node.rank, result.get(""+prediction.node.rank));
         }
 
-        ranks.put(prediction.node.rank,result);
+        ranks.put(prediction.node.rank,result.get(""+prediction.node.rank));
 
         // Convert from rank level to rank name
         for (Float rank : RANK_LEVEL_TO_NAME.keySet()) {
@@ -274,30 +274,10 @@ public class Taxonomy {
     }
 
     /** Converts a prediction result to a map */
-    public static Map<String,Object> nodeToMap(Prediction prediction) {
-        Map<String,Object> results = new HashMap<>();
+    public static Map<String,SpeciesObject> nodeToMap(Prediction prediction) {
+        Map<String,SpeciesObject> results = new HashMap<>();
 
         if (prediction.node == null) return null;
-
-        try {
-            results.put("taxon_id", Integer.valueOf(prediction.node.key));
-            results.put("name", prediction.node.name);
-            results.put("score", prediction.probability);
-            results.put("rank", prediction.node.rank);
-
-            if (mModelVersion.equals("2.3") || mModelVersion.equals("2.4")) {
-                if ((prediction.node.iconicId != null) && (prediction.node.iconicId.length() > 0)) {
-                    results.put("iconic_class_id", Integer.valueOf(prediction.node.iconicId));
-                }
-                if ((prediction.node.spatialId != null) && (prediction.node.spatialId.length() > 0)) {
-                    results.put("spatial_class_id", Integer.valueOf(prediction.node.spatialId));
-                }
-            }
-        } catch (NumberFormatException exc) {
-            // Invalid node key or class ID
-            exc.printStackTrace();
-            return null;
-        }
 
         // Create the ancestors list for the result
         List<Integer> ancestorsList = new ArrayList<>();
@@ -314,7 +294,30 @@ public class Taxonomy {
             ancestors.add(id);
         }
 
-        results.put("ancestor_ids", ancestors);
+        try {
+//            results.put("taxon_id", Integer.valueOf(prediction.node.key));
+//            results.put("name", prediction.node.name);
+//            results.put("score", prediction.probability);
+//            results.put("rank", prediction.node.rank);
+//
+//            if (mModelVersion.equals("2.3") || mModelVersion.equals("2.4")) {
+//                if ((prediction.node.iconicId != null) && (prediction.node.iconicId.length() > 0)) {
+//                    results.put("iconic_class_id", Integer.valueOf(prediction.node.iconicId));
+//                }
+//                if ((prediction.node.spatialId != null) && (prediction.node.spatialId.length() > 0)) {
+//                    results.put("spatial_class_id", Integer.valueOf(prediction.node.spatialId));
+//                }
+//            }
+
+            results.put(""+prediction.node.rank,new SpeciesObject(prediction.probability,prediction.node.name,Integer.parseInt(prediction.node.key),prediction.node.rank,ancestors));
+
+        } catch (NumberFormatException exc) {
+            // Invalid node key or class ID
+            exc.printStackTrace();
+            return null;
+        }
+
+        //results.put("ancestor_ids", ancestors);
 
         return results;
     }

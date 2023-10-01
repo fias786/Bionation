@@ -58,12 +58,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.card.MaterialCardView;
-import com.persistent.bionation.Observation;
-import com.persistent.bionation.ObservationResult;
-import com.persistent.bionation.Place;
 import com.persistent.bionation.R;
-import com.persistent.bionation.UTFGrid;
-import com.persistent.bionation.UTFPosition;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -590,7 +585,11 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
                                                 Glide.with(requireActivity())
                                                         .load(resultObservation.taxon.speciesPhoto.photoMediumUrl)
                                                         .into(bottomSheetImageVIew);
-                                                observationWikipediaTextView.setText(Html.fromHtml(resultObservation.taxon.wikipediaSummary != null ? resultObservation.taxon.wikipediaSummary : ""));
+                                                if(resultObservation.taxon.wikipediaSummary != null){
+                                                    observationWikipediaTextView.setText(Html.fromHtml(resultObservation.taxon.wikipediaSummary));
+                                                }else {
+                                                    observationWikipediaTextView.setText("");
+                                                }
                                             }
                                         });
                                     }

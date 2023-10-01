@@ -1,4 +1,4 @@
-package com.persistent.bionation;
+package com.persistent.bionation.ui.explore;
 
 import android.util.Log;
 

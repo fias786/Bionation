@@ -5,17 +5,21 @@ import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.camera.core.Camera;
@@ -24,57 +28,92 @@ import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageProxy;
 import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
-import androidx.camera.view.CameraController;
-import androidx.camera.view.LifecycleCameraController;
 import androidx.camera.view.PreviewView;
 import androidx.core.app.ActivityCompat;
-import androidx.core.app.ComponentActivity;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.LifecycleOwner;
 
+import com.bumptech.glide.Glide;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.persistent.bionation.R;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.http.GET;
+import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public class CameraFragment extends Fragment {
 
     private static final String TAG = "CameraFragment";
+    private static final String API_URL = "https://api.inaturalist.org/v1/" ;
 
     PreviewView previewView;
     private BottomNavigationView bottomNavigationView;
-    ImageAnalysis imageAnalysis;
     ImageClassifier imageClassifier;
     private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
     private ProcessCameraProvider cameraProvider;
-    private SortedMap<Float,Map<String,Object>> results;
+    private Camera camera;
+    private SortedMap<Float,Map<String,SpeciesObject>> results;
     private OverlayView overlayView;
+    private ImageButton cameraCapture,cameraFlash, closeCamera, cameraGallery;
+    private boolean isFlashOn = false;
+    private BottomSheetBehavior bottomSheetBehavior;
+    private BottomSheetBehavior.BottomSheetCallback bottomSheetCallback;
+    private TextView observationCommonNameTextView;
+    private ImageView bottomSheetImageVIew;
+    private TextView observationWikipediaTextView;
+    private TextView observationIsThreatened;
+    Observations observations;
+    Observation observationResult;
+
+    public interface ObservationsById {
+        @GET("observations/{id}")
+        Call<Observation> observations(@Path("id") int observationId);
+    }
+
+    public interface Observations {
+        @GET("observations?")
+        Call<Observation> observations(@Query("taxon_id") int taxonId, @Query("per_page") String perPage, @Query("page") String page);
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         cameraProviderFuture = ProcessCameraProvider.getInstance(getContext());
         results = new TreeMap<>();
-        //overlayView = new OverlayView(getContext());
     }
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_camera, container, false);
         overlayView = root.findViewById(R.id.CameraOverlay);
+        cameraCapture = root.findViewById(R.id.Capture);
+        cameraFlash = root.findViewById(R.id.CameraFlash);
+        closeCamera = root.findViewById(R.id.CloseCamera);
+        cameraGallery = root.findViewById(R.id.CameraGallery);
+        observationCommonNameTextView = root.findViewById(R.id.CameraBottomSheet_ObservationNameText);
+        bottomSheetImageVIew = root.findViewById(R.id.CameraBottomSheet_Image);
+        observationWikipediaTextView = root.findViewById(R.id.CameraBottomSheet_ObservationWikipediaText);
+        observationIsThreatened = root.findViewById(R.id.CameraBottomSheet_ObservationIsThreatenedText);
         getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+        getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         bottomNavigationView = requireActivity().findViewById(R.id.nav_view);
         ViewGroup.LayoutParams layoutParams = bottomNavigationView.getLayoutParams();
         layoutParams.height = 0;
@@ -91,27 +130,180 @@ public class CameraFragment extends Fragment {
             e.printStackTrace();
         }
 
+        Retrofit retrofit =
+                new Retrofit.Builder()
+                        .baseUrl(API_URL)
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .build();
+
+        observations = retrofit.create(Observations.class);
+
+        View bottomSheet = root.findViewById(R.id.CameraBottomSheet);
+        final float scale = getContext().getResources().getDisplayMetrics().density;
+        bottomSheet.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN){
+                    if(bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_COLLAPSED){
+                        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
+                    }else if(bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_HALF_EXPANDED){
+                        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                    }else if(bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED){
+                        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
+                    }
+                }
+            }
+        });
+
+        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
+        bottomSheetBehavior.setHideable(true);
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        bottomSheetBehavior.setFitToContents(false);
+        int expandedOffsetPixels = (int) (80 * scale + 0.5f);
+        bottomSheetBehavior.setExpandedOffset(expandedOffsetPixels);
+        bottomSheetCallback = new BottomSheetBehavior.BottomSheetCallback() {
+            @Override
+            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                switch (newState) {
+                    case BottomSheetBehavior.STATE_COLLAPSED:
+                        Log.d(TAG, "onStateChanged: Collapsed");
+                        break;
+                    case BottomSheetBehavior.STATE_EXPANDED:
+                        Log.d(TAG, "onStateChanged: Expanded");
+                        break;
+                    case BottomSheetBehavior.STATE_DRAGGING:
+                        Log.d(TAG, "onStateChanged: Dragging ");
+                        break;
+                    case BottomSheetBehavior.STATE_HIDDEN:
+                        observationCommonNameTextView.setText("");
+                        observationWikipediaTextView.setText("");
+                        observationIsThreatened.setText("");
+                        bottomSheetImageVIew.setImageResource(0);
+                        break;
+                    case BottomSheetBehavior.STATE_SETTLING:
+                        Log.d(TAG, "onStateChanged: Settling");
+                        break;
+                    case BottomSheetBehavior.STATE_HALF_EXPANDED:
+                        Log.d(TAG, "onStateChanged: " + "Half Expanded");
+                        break;
+                }
+            }
+
+            @Override
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+
+            }
+
+        };
 
         return root;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        cameraFlash.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(!isFlashOn){
+                    cameraFlash.setBackgroundResource(R.drawable.ic_flash_off_24dp);
+                    isFlashOn = true;
+                    camera.getCameraControl().enableTorch(true);
+                }else{
+                    cameraFlash.setBackgroundResource(R.drawable.ic_flash_on_24dp);
+                    isFlashOn = false;
+                    camera.getCameraControl().enableTorch(false);
+                }
+            }
+        });
+
+        closeCamera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED){
+                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
+                }else if(bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_HALF_EXPANDED || bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_COLLAPSED){
+                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+                }else{
+                    requireActivity().onBackPressed();
+                }
+            }
+        });
+
+        cameraCapture.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(results.get(10.0f)!=null){
+
+                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
+                    Call<Observation> call = observations.observations(results.get(10.0f).get("species").taxon_id,"1","1");
+                    call.enqueue(new Callback<Observation>() {
+                        @Override
+                        public void onResponse(Call<Observation> call, retrofit2.Response<Observation> response) {
+                            observationResult = response.body();
+                            requireActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    ObservationItems resultObservation = observationResult.observationItems.get(0);
+                                    Log.d(TAG, "Observation run: " + resultObservation.taxon.commonName);
+                                    observationCommonNameTextView.setText(resultObservation.taxon.scientificName);
+                                    if(resultObservation.taxon.isThreatened.equals("true")){
+                                        observationIsThreatened.setText("Species Threatened: YES");
+                                    }else{
+                                        observationIsThreatened.setText("Species Threatened: NO");
+                                    }
+
+                                    Glide.with(requireActivity())
+                                            .load(resultObservation.taxon.speciesPhoto.photoMediumUrl)
+                                            .into(bottomSheetImageVIew);
+                                    if(resultObservation.taxon.wikipediaSummary != null){
+                                        observationWikipediaTextView.setText(Html.fromHtml(resultObservation.taxon.wikipediaSummary));
+                                    }else {
+                                        observationWikipediaTextView.setText("");
+                                    }
+                                }
+                            });
+                        }
+
+                        @Override
+                        public void onFailure(Call<Observation> call, Throwable t) {
+
+                        }
+                    });
+                    results.clear();
+                }else{
+                    Toast.makeText(getContext(),"Species not detected",Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        cameraGallery.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+            }
+        });
+
     }
 
     @SuppressLint("RestrictedApi")
     @Override
     public void onDestroyView() {
-        super.onDestroyView();
         cameraProvider.unbindAll();
         cameraProvider.shutdown();
+        getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+        getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        getActivity().getWindow().setNavigationBarColor(Color.WHITE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            getActivity().getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
+        }
         final float scale = getContext().getResources().getDisplayMetrics().density;
         int bottomNavHeightPixels = (int) (50 * scale + 0.5f);
         bottomNavigationView = requireActivity().findViewById(R.id.nav_view);
         ViewGroup.LayoutParams layoutParams = bottomNavigationView.getLayoutParams();
         layoutParams.height = bottomNavHeightPixels;
         bottomNavigationView.setLayoutParams(layoutParams);
-        getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
-        getActivity().getWindow().setNavigationBarColor(Color.WHITE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            getActivity().getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
-        }
+        super.onDestroyView();
     }
 
     @Override
@@ -163,11 +355,11 @@ public class CameraFragment extends Fragment {
                             continue;
                         }
                         if (prediction.probability > 0.7) {
-                            Map<String, Object> map = Taxonomy.predictionToMap(prediction);
+                            Map<String, SpeciesObject> map = Taxonomy.predictionToMap(prediction);
                             if (map == null) continue;
                             results.put(prediction.node.rank, map);
-                            if (prediction.node.rank == 10.0) {
-                                overlayView.setResults(prediction);
+                            if (prediction.node.rank <= 50.0f) {
+                                overlayView.setResults(results);
                             } else{
                                 overlayView.setResults(null);
                                 overlayView.clear();
@@ -190,7 +382,9 @@ public class CameraFragment extends Fragment {
 
         preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
-        Camera camera = cameraProvider.bindToLifecycle((LifecycleOwner)this, cameraSelector, preview, imageAnalysis);
+        cameraProvider.unbindAll();
+        camera = cameraProvider.bindToLifecycle((LifecycleOwner)this, cameraSelector, preview, imageAnalysis);
+
     }
 
     private void startCamera() {

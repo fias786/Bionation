@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white"
     tools:context=".ui.camera.CameraFragment">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
     <androidx.camera.view.PreviewView
         android:id="@+id/CameraPreview"
@@ -17,4 +21,129 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <ImageButton
+        android:id="@+id/Capture"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:background="@drawable/ic_camera_24dp"
+        android:backgroundTint="@color/white"
+        android:layout_centerInParent="true"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="90dp"
+        />
+
+    <ImageButton
+        android:id="@+id/CameraFlash"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:background="@drawable/ic_flash_on_24dp"
+        android:backgroundTint="@color/white"
+        android:layout_marginTop="50dp"
+        android:layout_marginStart="15dp"
+        />
+
+    <ImageButton
+        android:id="@+id/CloseCamera"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:background="@drawable/ic_close_24dp"
+        android:backgroundTint="@color/white"
+        android:layout_marginTop="48dp"
+        android:layout_marginEnd="15dp"
+        android:layout_alignParentEnd="true"
+        />
+
+    <ImageButton
+        android:id="@+id/CameraGallery"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        tools:src="@drawable/auro"
+        android:scaleType="centerCrop"
+        android:backgroundTint="@color/white"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="100dp"
+        android:layout_toEndOf="@+id/Capture"
+        android:layout_marginStart="50dp"
+        />
+
+    <ImageButton
+        android:id="@+id/CameraSetting"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        tools:src="@drawable/auro"
+        android:scaleType="centerCrop"
+        android:backgroundTint="@color/white"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="100dp"
+        android:layout_toStartOf="@+id/Capture"
+        android:layout_marginEnd="50dp"
+        />
+
+    </RelativeLayout>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/CameraBottomSheet"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:behavior_peekHeight="160dp"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+        app:cardElevation="10dp"
+        android:layout_gravity="bottom"
+        app:cardBackgroundColor="@color/white"
+        app:cardCornerRadius="10dp"
+        >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/CameraBottomSheet_ObservationNameText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginBottom="10dp"
+                android:textColor="#434343"
+                android:textSize="25sp" />
+
+            <TextView
+                android:id="@+id/CameraBottomSheet_ObservationIsThreatenedText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="80dp"
+                android:layout_marginBottom="10dp"
+                android:textColor="#787878"
+                />
+
+            <ImageView
+                android:id="@+id/CameraBottomSheet_Image"
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginBottom="10dp"
+                android:cropToPadding="true"
+                android:scaleType="centerCrop" />
+
+            <TextView
+                android:id="@+id/CameraBottomSheet_ObservationWikipediaText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginBottom="10dp"
+                android:textColor="#787878"
+                android:textSize="16sp"
+                android:justificationMode="inter_word"
+                />
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
