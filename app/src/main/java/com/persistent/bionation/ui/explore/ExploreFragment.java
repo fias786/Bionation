@@ -21,6 +21,7 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
@@ -34,6 +35,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -59,6 +62,10 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.card.MaterialCardView;
 import com.persistent.bionation.R;
+import com.persistent.bionation.adapter.ObservationImageRecyclerView;
+import com.persistent.bionation.data.ObservationImageData;
+import com.persistent.bionation.ui.camera.CameraFragment;
+import com.persistent.bionation.ui.camera.ObservationItems;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -67,7 +74,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
 import okhttp3.OkHttpClient;
@@ -148,20 +157,9 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
         }
     }
 
-
-    public interface Observations {
-        @GET("observations?")
-        Call<Observation> observations(@Query("nelat") double nelat, @Query("nelng") double nelng, @Query("swlat") double swlat, @Query("swlng") double swlng, @Query("place_id") int placeId, @Query("per_page") String perPage, @Query("page") String page);
-    }
-
     public interface ObservationsById {
         @GET("observations/{id}")
         Call<Observation> observations(@Path("id") int observationId);
-    }
-
-    public interface Places {
-        @GET("places/nearby")
-        Call<Place> places(@Query("nelat") double nelat, @Query("nelng") double nelng, @Query("swlat") double swlat, @Query("swlng") double swlng);
     }
 
     private MaterialCardView expandedAppBar;
@@ -177,7 +175,12 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
     private ImageButton searchMic;
     ObservationsById observationsById;
     Observation observationResult;
+    CameraFragment.Observations observations;
+    com.persistent.bionation.ui.camera.Observation observationItemsResult;
     Address address;
+    private RecyclerView observationRecyclerView;
+    private ObservationImageRecyclerView observationImageAdapter;
+    private ArrayList<ObservationImageData> loadObservationImages = new ArrayList<>();
 
     String placeText="";
 
@@ -198,6 +201,7 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
         bottomNavigationView = requireActivity().findViewById(R.id.nav_view);
         expandedAppBar = root.findViewById(R.id.ExpandedAppBar);
         bottomSheetDownArrow = root.findViewById(R.id.BottomSheetDownArrow);
+        observationRecyclerView = root.findViewById(R.id.ExploreImageRecyclerView);
 
         searchArea = root.findViewById(R.id.SearchArea);
         searchText = root.findViewById(R.id.SearchEditText);
@@ -213,6 +217,11 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
                 Toast.makeText(getContext(),"Text Clicked ", Toast.LENGTH_SHORT).show();
             }
         });
+
+        observationRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(),LinearLayoutManager.HORIZONTAL,false));
+        observationRecyclerView.setHasFixedSize(true);
+        observationImageAdapter = new ObservationImageRecyclerView(getContext(),loadObservationImages);
+        observationRecyclerView.setAdapter(observationImageAdapter);
 
 
         bottomSheetDownArrow.setOnClickListener(new View.OnClickListener() {
@@ -349,6 +358,8 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
                         observationWikipediaTextView.setText("");
                         addressTextView.setText("");
                         bottomSheetImageVIew.setImageResource(0);
+                        loadObservationImages.clear();
+                        observationImageAdapter.notifyDataSetChanged();
                         break;
                     case BottomSheetBehavior.STATE_SETTLING:
                         Log.d(TAG, "onStateChanged: Settling");
@@ -406,6 +417,7 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
         //Observations observations = retrofit.create(Observations.class);
         //Places places = retrofit.create(Places.class);
         observationsById = retrofit.create(ObservationsById.class);
+        observations = (CameraFragment.Observations) retrofit.create(CameraFragment.Observations.class);
 
         GoogleMapOptions googleMapOptions = new GoogleMapOptions();
         googleMapOptions.mapType(GoogleMap.MAP_TYPE_SATELLITE).compassEnabled(false)
@@ -578,13 +590,56 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
                                         requireActivity().runOnUiThread(new Runnable() {
                                             @Override
                                             public void run() {
+                                                loadObservationImages.clear();
+                                                observationImageAdapter.notifyDataSetChanged();
                                                 ObservationResult resultObservation = observationResult.observationResultList.get(0);
                                                 Log.d(TAG, "Observation run: " + resultObservation.taxon.commonName);
                                                 observationCommonNameTextView.setText(resultObservation.taxon.scientificName);
                                                 addressTextView.setText(address.getAddressLine(0) != null ? address.getAddressLine(0) : "Unknown Location");
                                                 Glide.with(requireActivity())
                                                         .load(resultObservation.taxon.speciesPhoto.photoMediumUrl)
+                                                        .placeholder(R.drawable.image_spinner)
                                                         .into(bottomSheetImageVIew);
+                                                Call<com.persistent.bionation.ui.camera.Observation> call = observations.observations(true,resultObservation.taxon.id,"30","1");
+                                                call.enqueue(new Callback<com.persistent.bionation.ui.camera.Observation>() {
+                                                    @Override
+                                                    public void onResponse(Call<com.persistent.bionation.ui.camera.Observation> call, retrofit2.Response<com.persistent.bionation.ui.camera.Observation> response) {
+                                                        observationItemsResult = response.body();
+                                                        requireActivity().runOnUiThread(new Runnable() {
+                                                            @Override
+                                                            public void run() {
+                                                                List<String> imageUrls = new ArrayList<>();
+                                                                for (int i = 0; i < observationItemsResult.observationItems.size(); i++) {
+                                                                    for (int j = 0; j < observationItemsResult.observationItems.get(i).photosList.size(); j++) {
+                                                                        String squareUrl = observationItemsResult.observationItems.get(i).photosList.get(j).url;
+                                                                        String mediumUrl = squareUrl.split("square")[0] + "medium" + squareUrl.split("square")[1];
+                                                                        imageUrls.add(mediumUrl);
+                                                                    }
+                                                                }
+                                                                for (int i = 0; i < imageUrls.size(); i=i+3) {
+                                                                    ObservationImageData observationImageData = new ObservationImageData(
+                                                                            imageUrls.get((i)%imageUrls.size()),
+                                                                            imageUrls.get((i+1)%imageUrls.size()),
+                                                                            imageUrls.get((i+2)%imageUrls.size()));
+                                                                    loadObservationImages.add(observationImageData);
+                                                                    observationImageAdapter.notifyDataSetChanged();
+                                                                }
+
+                                                                if(resultObservation.taxon.wikipediaSummary != null){
+                                                                    observationWikipediaTextView.setText(Html.fromHtml(resultObservation.taxon.wikipediaSummary));
+                                                                }else {
+                                                                    observationWikipediaTextView.setText("");
+                                                                }
+
+                                                            }
+                                                        });
+                                                    }
+
+                                                    @Override
+                                                    public void onFailure(Call<com.persistent.bionation.ui.camera.Observation> call, Throwable t) {
+
+                                                    }
+                                                });
                                                 if(resultObservation.taxon.wikipediaSummary != null){
                                                     observationWikipediaTextView.setText(Html.fromHtml(resultObservation.taxon.wikipediaSummary));
                                                 }else {
@@ -638,6 +693,16 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
         });
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+        getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        getActivity().getWindow().setNavigationBarColor(Color.WHITE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            getActivity().getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
+        }
+    }
 
     @Override
     public void onDestroy() {
@@ -663,6 +728,6 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
     }
 
     private void getPermission() {
-        ActivityCompat.requestPermissions(requireActivity(), new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.RECORD_AUDIO}, 101);
+        ActivityCompat.requestPermissions(requireActivity(), new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.RECORD_AUDIO, Manifest.permission.READ_EXTERNAL_STORAGE}, 101);
     }
 }

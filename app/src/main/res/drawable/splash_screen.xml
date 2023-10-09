@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:gravity="center" android:width="300dp" android:height="200dp" android:drawable="@drawable/bionation_app_logo_tansparent"/>
+</layer-list>

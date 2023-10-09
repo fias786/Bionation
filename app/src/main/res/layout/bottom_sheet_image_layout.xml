@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    >
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/LargeImageCardView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="10dp"
+        android:layout_margin="5dp"
+        >
+        <ImageView
+            android:id="@+id/LargeImage"
+            android:scaleType="centerCrop"
+            android:layout_width="280dp"
+            android:layout_height="330dp"
+            tools:src="@tools:sample/avatars"
+            />
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/SmallImageCardView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="10dp"
+        android:layout_margin="5dp"
+        android:layout_toEndOf="@+id/LargeImageCardView"
+        >
+        <ImageView
+            android:id="@+id/FirstSmallImage"
+            android:scaleType="centerCrop"
+            android:layout_width="160dp"
+            android:layout_height="160dp"
+            tools:src="@tools:sample/avatars"
+            />
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="10dp"
+        android:layout_margin="5dp"
+        android:layout_toEndOf="@id/LargeImageCardView"
+        android:layout_below="@+id/SmallImageCardView"
+        >
+        <ImageView
+            android:id="@+id/SecondSmallImage"
+            android:scaleType="centerCrop"
+            android:layout_width="160dp"
+            android:layout_height="160dp"
+            tools:src="@tools:sample/avatars"
+            />
+    </com.google.android.material.card.MaterialCardView>
+
+
+
+</RelativeLayout>

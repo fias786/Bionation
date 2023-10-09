@@ -2,6 +2,7 @@ package com.persistent.bionation.ui.explore;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
 import android.os.Looper;
 import android.provider.MediaStore;
@@ -41,6 +42,7 @@ public class MicBottomSheetDialog extends BottomSheetDialogFragment {
     private BottomSheetListener bottomSheetListener;
     private TextView micText;
     private TextView tapMicText;
+    private ImageButton micBottom;
     RecognizeCallback recognizeCallback;
     private volatile boolean listening = false;
     private volatile boolean running = false;
@@ -56,7 +58,7 @@ public class MicBottomSheetDialog extends BottomSheetDialogFragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.mic_bottom_sheet_layout, container, false);
-        ImageButton micBottom = view.findViewById(R.id.micBottom);
+        micBottom = view.findViewById(R.id.micBottom);
         micText = view.findViewById(R.id.micText);
         tapMicText = view.findViewById(R.id.TapMicText);
 
@@ -193,6 +195,7 @@ public class MicBottomSheetDialog extends BottomSheetDialogFragment {
                 public void run() {
                     tapMicText.setVisibility(View.INVISIBLE);
                     micText.setText("Say something you want");
+                    micBottom.setImageResource(R.drawable.blue_mic_gif);
                 }
             });
         }
@@ -230,6 +233,7 @@ public class MicBottomSheetDialog extends BottomSheetDialogFragment {
                     public void run() {
                         micText.setText("You can try saying");
                         tapMicText.setVisibility(View.VISIBLE);
+                        micBottom.setImageResource(R.drawable.ic_blue_mic_24dp);
                     }
                 });
             }

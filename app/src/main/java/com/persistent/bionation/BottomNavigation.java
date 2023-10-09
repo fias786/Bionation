@@ -20,6 +20,9 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
+
 public class BottomNavigation extends AppCompatActivity{
 
     private static final String TAG = "BottomNavigation";
@@ -36,6 +39,7 @@ public class BottomNavigation extends AppCompatActivity{
         BottomNavigationView navView = findViewById(R.id.nav_view);
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupWithNavController(navView, navController);
+
     }
 
 }

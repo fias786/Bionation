@@ -3,10 +3,13 @@ package com.persistent.bionation.ui.camera;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.os.Build;
+import android.os.FileUtils;
 import android.os.SystemClock;
 import android.util.Log;
 
 import org.tensorflow.lite.Interpreter;
+import org.tensorflow.lite.nnapi.NnApiDelegate;
 
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
@@ -83,7 +86,7 @@ public class ImageClassifier {
                 ByteBuffer.allocateDirect(
                         4 * DIM_BATCH_SIZE * DIM_IMG_SIZE_X * DIM_IMG_SIZE_Y * DIM_PIXEL_SIZE);
         imgData.order(ByteOrder.nativeOrder());
-        Log.d(TAG, "Created a Tensorflow Lite Image Classifier.");
+        //Log.d(TAG, "Created a Tensorflow Lite Image Classifier.");
 
         mTaxonomy = new Taxonomy(mTaxonomyFilename, mModelVersion);
         mModelSize = mTaxonomy.getModelSize();
@@ -92,11 +95,11 @@ public class ImageClassifier {
     /** Classifies a frame from the preview stream. */
     public List<Prediction> classifyFrame(Bitmap bitmap) {
         if (mTFlite == null) {
-            Log.d(TAG, "Image classifier has not been initialized; Skipped.");
+            //Log.d(TAG, "Image classifier has not been initialized; Skipped.");
             return null;
         }
         if (bitmap == null) {
-            Log.d(TAG, "Null input bitmap");
+            //Log.d(TAG, "Null input bitmap");
             return null;
         }
 
@@ -183,9 +186,9 @@ public class ImageClassifier {
             byteBuffer.rewind();
             imgData.put(byteBuffer);
             long endTime = SystemClock.uptimeMillis();
-            Log.d(TAG, "Timecost to put values into ByteBuffer: " + Long.toString(endTime - startTime));
+            //Log.d(TAG, "Timecost to put values into ByteBuffer: " + Long.toString(endTime - startTime));
         } catch (BufferOverflowException exc) {
-            Log.d(TAG, "Exception while converting to byte buffer: " + exc);
+            //Log.d(TAG, "Exception while converting to byte buffer: " + exc);
         }
     }
 

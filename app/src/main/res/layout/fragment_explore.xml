@@ -63,11 +63,19 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
+            <ImageView
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="@drawable/bionation_app_logo_tansparent"
+                android:layout_marginStart="10dp"
+                />
+
+
             <EditText
                 android:id="@+id/SearchEditText"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_marginStart="30dp"
+                android:layout_marginStart="70dp"
                 android:layout_marginEnd="50dp"
                 android:hint="Search here"
                 android:background="#00000000"
@@ -142,6 +150,7 @@
                 />
 
             <ImageView
+                android:visibility="gone"
                 android:id="@+id/BottomSheet_Image"
                 android:layout_width="200dp"
                 android:layout_height="200dp"
@@ -149,6 +158,15 @@
                 android:layout_marginBottom="10dp"
                 android:cropToPadding="true"
                 android:scaleType="centerCrop" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:visibility="visible"
+                android:id="@+id/ExploreImageRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="340dp"
+                tools:listitem="@layout/bottom_sheet_image_layout"
+                tools:itemCount="1"
+                />
 
             <TextView
                 android:id="@+id/BottomSheet_ObservationWikipediaText"
