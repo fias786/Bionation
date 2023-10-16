@@ -122,65 +122,83 @@
         app:cardCornerRadius="10dp"
         >
 
-        <LinearLayout
+        <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:layout_height="match_parent">
 
-            <TextView
-                android:id="@+id/BottomSheet_ObservationNameText"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:layout_marginTop="10dp"
-                android:layout_marginEnd="10dp"
-                android:layout_marginBottom="10dp"
-                android:textColor="#434343"
-                android:textSize="25sp" />
+                android:layout_height="match_parent"
+                android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/BottomSheet_LocationAddressText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="16sp"
-                android:layout_marginStart="10dp"
-                android:layout_marginEnd="80dp"
-                android:layout_marginBottom="10dp"
-                android:textColor="#787878"
-                />
+                <TextView
+                    android:id="@+id/BottomSheet_ObservationNameText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:textColor="#434343"
+                    android:textSize="25sp" />
 
-            <ImageView
-                android:visibility="gone"
-                android:id="@+id/BottomSheet_Image"
-                android:layout_width="200dp"
-                android:layout_height="200dp"
-                android:layout_marginStart="10dp"
-                android:layout_marginBottom="10dp"
-                android:cropToPadding="true"
-                android:scaleType="centerCrop" />
+                <TextView
+                    android:id="@+id/BottomSheet_LocationAddressText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="80dp"
+                    android:layout_marginBottom="10dp"
+                    android:textColor="#787878"
+                    />
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:visibility="visible"
-                android:id="@+id/ExploreImageRecyclerView"
-                android:layout_width="match_parent"
-                android:layout_height="340dp"
-                tools:listitem="@layout/bottom_sheet_image_layout"
-                tools:itemCount="1"
-                />
+                <ImageView
+                    android:visibility="gone"
+                    android:id="@+id/BottomSheet_Image"
+                    android:layout_width="200dp"
+                    android:layout_height="200dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:cropToPadding="true"
+                    android:scaleType="centerCrop" />
 
-            <TextView
-                android:id="@+id/BottomSheet_ObservationWikipediaText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:layout_marginEnd="10dp"
-                android:layout_marginBottom="10dp"
-                android:textColor="#787878"
-                android:textSize="16sp"
-                android:justificationMode="inter_word"
-                />
+                <androidx.recyclerview.widget.RecyclerView
+                    android:visibility="visible"
+                    android:id="@+id/ExploreImageRecyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="340dp"
+                    tools:listitem="@layout/bottom_sheet_image_layout"
+                    tools:itemCount="1"
+                    />
 
-        </LinearLayout>
+                <TextView
+                    android:id="@+id/BottomSheet_ObservationWikipediaText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:textColor="#787878"
+                    android:textSize="16sp"
+                    android:justificationMode="inter_word"
+                    />
+
+                <TextView
+                    android:id="@+id/BottomSheet_GenAIText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:textColor="#787878"
+                    android:textSize="16sp"
+                    android:justificationMode="inter_word"
+                    />
+
+            </LinearLayout>
+
+        </androidx.core.widget.NestedScrollView>
 
     </com.google.android.material.card.MaterialCardView>
 

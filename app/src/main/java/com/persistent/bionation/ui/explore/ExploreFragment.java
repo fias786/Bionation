@@ -61,6 +61,8 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.card.MaterialCardView;
+import com.ibm.cloud.sdk.core.security.Authenticator;
+import com.ibm.cloud.sdk.core.security.IamAuthenticator;
 import com.persistent.bionation.R;
 import com.persistent.bionation.adapter.ObservationImageRecyclerView;
 import com.persistent.bionation.data.ObservationImageData;
@@ -81,12 +83,14 @@ import java.util.Locale;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.Response;
+import okhttp3.Interceptor;
 import retrofit2.Call;
 import retrofit2.Callback;
+import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.GET;
+import retrofit2.http.POST;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
@@ -96,6 +100,7 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
     private BottomNavigationView bottomNavigationView;
 
     private static final String API_URL = "https://api.inaturalist.org/v1/" ;
+    private static final String genAI_URL = "https://eu-de.ml.cloud.ibm.com/ml/v1-beta/generation/text?version=2023-05-29/";
     double lat=0.0,lng=0.0;
     GoogleMap mMap;
     private FusedLocationProviderClient mFusedLocationClient;
@@ -157,6 +162,11 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
         }
     }
 
+    public interface GenAIRequest {
+        @POST("generation/text?version=2023-05-29/")
+        Call<GenAIData> genAIRequest();
+    }
+
     public interface ObservationsById {
         @GET("observations/{id}")
         Call<Observation> observations(@Path("id") int observationId);
@@ -170,6 +180,7 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
     private TextView addressTextView;
     private ImageView bottomSheetImageVIew;
     private TextView observationWikipediaTextView;
+    private TextView genAITextView;
     private ImageButton bottomSheetDownArrow;
     private EditText searchText;
     private ImageButton searchMic;
@@ -183,6 +194,8 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
     private ArrayList<ObservationImageData> loadObservationImages = new ArrayList<>();
 
     String placeText="";
+    String genAIAccessToken="";
+    GenAIRequest genAIRequest;
 
     private MicBottomSheetDialog micBottomSheetDialog;
     private MicBottomSheetDialog.BottomSheetListener listener;
@@ -211,10 +224,11 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
         bottomSheetImageVIew = root.findViewById(R.id.BottomSheet_Image);
         addressTextView = root.findViewById(R.id.BottomSheet_LocationAddressText);
         observationWikipediaTextView = root.findViewById(R.id.BottomSheet_ObservationWikipediaText);
+        genAITextView = root.findViewById(R.id.BottomSheet_GenAIText);
         observationCommonNameTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(getContext(),"Text Clicked ", Toast.LENGTH_SHORT).show();
+
             }
         });
 
@@ -231,6 +245,17 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
                 bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
             }
         });
+
+
+        if(new IamAuthenticator.Builder().apikey("").build().requestToken().needsRefresh()){
+            genAIAccessToken = new IamAuthenticator.Builder().apikey("").build().requestToken().getRefreshToken();
+            Log.d(TAG, "1 Gen AI Token: "+genAIAccessToken);
+        }else{
+            genAIAccessToken = new IamAuthenticator.Builder().apikey("").build().requestToken().getAccessToken();
+            Log.d(TAG, "2 Gen AI Token: "+genAIAccessToken);
+        }
+
+        Log.d(TAG, "Gen AI Token: "+genAIAccessToken);
 
         searchText.addTextChangedListener(new TextWatcher() {
             @Override
@@ -567,14 +592,14 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-
                         OkHttpClient client = new OkHttpClient();
                         Request request = new Request.Builder()
                                 .url(pointUrl)
                                 .build();
 
+
                         try {
-                            Response response = client.newCall(request).execute();
+                            okhttp3.Response response = client.newCall(request).execute();
                             String responseBody = response.body().string();
                             JSONObject utfGridJSON = new JSONObject(responseBody);
                             UTFGrid utfGrid = new UTFGrid(utfGridJSON);
@@ -585,17 +610,24 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
                                 Call<Observation> call = observationsById.observations(Integer.parseInt(observation.getString("id")));
                                 call.enqueue(new Callback<Observation>() {
                                     @Override
-                                    public void onResponse(Call<Observation> call, retrofit2.Response<Observation> response) {
+                                    public void onResponse(Call<Observation> call, Response<Observation> response) {
                                         observationResult = response.body();
                                         requireActivity().runOnUiThread(new Runnable() {
                                             @Override
                                             public void run() {
+                                                genAITextView.setText("");
+                                                observationWikipediaTextView.setText("");
                                                 loadObservationImages.clear();
                                                 observationImageAdapter.notifyDataSetChanged();
                                                 ObservationResult resultObservation = observationResult.observationResultList.get(0);
                                                 Log.d(TAG, "Observation run: " + resultObservation.taxon.commonName);
                                                 observationCommonNameTextView.setText(resultObservation.taxon.scientificName);
-                                                addressTextView.setText(address.getAddressLine(0) != null ? address.getAddressLine(0) : "Unknown Location");
+                                                if(address!=null && address.getAddressLine(0)!=null){
+                                                    addressTextView.setText(address.getAddressLine(0));
+                                                }else{
+                                                    addressTextView.setText("Unknown Location");
+                                                }
+
                                                 Glide.with(requireActivity())
                                                         .load(resultObservation.taxon.speciesPhoto.photoMediumUrl)
                                                         .placeholder(R.drawable.image_spinner)
@@ -603,7 +635,7 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
                                                 Call<com.persistent.bionation.ui.camera.Observation> call = observations.observations(true,resultObservation.taxon.id,"30","1");
                                                 call.enqueue(new Callback<com.persistent.bionation.ui.camera.Observation>() {
                                                     @Override
-                                                    public void onResponse(Call<com.persistent.bionation.ui.camera.Observation> call, retrofit2.Response<com.persistent.bionation.ui.camera.Observation> response) {
+                                                    public void onResponse(Call<com.persistent.bionation.ui.camera.Observation> call, Response<com.persistent.bionation.ui.camera.Observation> response) {
                                                         observationItemsResult = response.body();
                                                         requireActivity().runOnUiThread(new Runnable() {
                                                             @Override
@@ -640,6 +672,40 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
 
                                                     }
                                                 });
+
+                                                new Thread(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        OkHttpClient client = new OkHttpClient().newBuilder().build();
+                                                        okhttp3.MediaType mediaType = okhttp3.MediaType.parse("application/json");
+                                                        okhttp3.RequestBody body = okhttp3.RequestBody.create(mediaType, "{\r\n\r\n \"model_id\": \"google/flan-t5-xxl\",\r\n\r\n \"input\": \"tell me something about "+resultObservation.taxon.scientificName+ " \\nTopic: biodiversity, extinction, disaster, wildlife, conservation, protection, habitat, mammals, birds, marine animals, wildfires, wetlands, rainforests, mangroves, encroachment, plastic\\\\nTone: energetic\\\\n\",\r\n\r\n \"parameters\": {\r\n\r\n \"decoding_method\": \"sample\",\r\n\r\n \"max_new_tokens\": 200,\r\n\r\n \"min_new_tokens\": 50,\r\n\r\n \"random_seed\": 111,\r\n\r\n \"stop_sequences\": [],\r\n\r\n \"temperature\": 0.17,\r\n\r\n \"top_k\": 10,\r\n\r\n \"top_p\": 1,\r\n\r\n \"repetition_penalty\": 2\r\n\r\n },\r\n\r\n \"project_id\": \"20fd5695-7674-48b7-867b-ab0a9908ba5a\"\r\n\r\n}");
+                                                        Request request = new Request.Builder().url("https://eu-de.ml.cloud.ibm.com/ml/v1-beta/generation/text?version=2023-05-29")
+                                                                .method("POST", body)
+                                                                .addHeader("Authorization", "Bearer "+genAIAccessToken)
+                                                                .build();
+                                                        try {
+                                                            okhttp3.Response response = client.newCall(request).execute();
+                                                            JSONObject genAIResponse = new JSONObject(response.body().string());
+                                                            genAIResponse.getJSONArray("results").get(0);
+
+
+                                                            Log.d(TAG, "Gen AI run: "+ new JSONObject(genAIResponse.getJSONArray("results").get(0).toString()).getString("generated_text"));
+                                                            requireActivity().runOnUiThread(new Runnable() {
+                                                                @Override
+                                                                public void run() {
+                                                                    try {
+                                                                        genAITextView.setText(new JSONObject(genAIResponse.getJSONArray("results").get(0).toString()).getString("generated_text").replaceAll("nn"," "));
+                                                                    } catch (JSONException e) {
+                                                                        e.printStackTrace();
+                                                                    }
+                                                                }
+                                                            });
+                                                        }catch (Exception e){
+                                                            e.printStackTrace();
+                                                        }
+                                                    }
+                                                }).start();
+
                                                 if(resultObservation.taxon.wikipediaSummary != null){
                                                     observationWikipediaTextView.setText(Html.fromHtml(resultObservation.taxon.wikipediaSummary));
                                                 }else {

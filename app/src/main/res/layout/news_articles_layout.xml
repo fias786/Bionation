@@ -4,75 +4,49 @@
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_margin="5dp"
+    android:layout_margin="15dp"
+    android:orientation="vertical"
+    android:background="@color/white"
+    android:id="@+id/NewsCardView"
     >
 
+    <TextView
+        android:id="@+id/newsTitle"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        tools:text="GST Council News LIVE Updates: GST on flour containing 70 pc millets"
+        android:textSize="18sp"
+        android:fontFamily="@font/roboto_bold"
+        android:layout_margin="5dp"
+        android:textColor="#686666"
+        />
+
     <com.google.android.material.card.MaterialCardView
+        android:id="@+id/ImageCardView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:cardCornerRadius="5dp"
-        app:cardElevation="10dp"
-        app:strokeWidth="1dp"
-        app:strokeColor="@color/grey"
+        android:layout_toEndOf="@id/newsTitle"
+        app:cardCornerRadius="15dp"
         >
 
-        <RelativeLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@color/white"
-            >
-            <TextView
-                android:id="@+id/newsTitle"
-                android:layout_width="280dp"
-                android:layout_height="wrap_content"
-                tools:text="Biodiversity App"
-                android:textSize="20sp"
-                android:fontFamily="@font/roboto_bold"
-                android:layout_margin="5dp"
-                android:textColor="@color/dark_grey"
-                />
-
-            <TextView
-                android:id="@+id/newsDescription"
-                android:layout_width="280dp"
-                android:layout_height="wrap_content"
-                tools:text="GST Council News LIVE Updates: GST on flour containing 70 pc millets will have zero pc GST if sold loose, 5 pc if sold prepackaged"
-                android:textSize="16sp"
-                android:fontFamily="@font/roboto_medium"
-                android:layout_marginStart="5dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginBottom="5dp"
-                android:layout_below="@+id/newsTitle"
-                android:justificationMode="inter_word"
-                android:textColor="@color/dark_grey"
-                />
-
-
-            <ImageView
-                android:id="@+id/newsImage"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                tools:src="@tools:sample/avatars"
-                android:layout_alignParentEnd="true"
-                android:layout_toEndOf="@+id/newsTitle"
-                android:layout_below="@+id/newsTime"
-                android:layout_marginStart="10dp"
-                android:layout_marginTop="10dp"
-                />
-
-            <TextView
-                android:id="@+id/newsTime"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                tools:text="10-20-2023"
-                android:textSize="12sp"
-                android:layout_margin="10dp"
-                android:textColor="@color/dark_grey"
-                />
-
-        </RelativeLayout>
+        <ImageView
+            android:id="@+id/newsImage"
+            android:layout_width="120dp"
+            android:layout_height="100dp"
+            tools:src="@tools:sample/avatars"
+            android:scaleType="centerCrop"
+            />
 
     </com.google.android.material.card.MaterialCardView>
+
+    <TextView
+        android:id="@+id/newsTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="September 13, 2023 at 9:14 pm"
+        android:textSize="12sp"
+        android:layout_margin="10dp"
+        android:textColor="@color/dark_grey"
+        android:layout_below="@+id/newsTitle"
+        />
 </RelativeLayout>

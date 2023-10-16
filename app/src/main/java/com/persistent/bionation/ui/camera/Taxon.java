@@ -22,6 +22,9 @@ public class Taxon {
     @SerializedName("wikipedia_url")
     public String wikipedia_url;
 
+    @SerializedName("observations_count")
+    public String observations_count;
+
     public static class SpeciesPhoto {
 
         @SerializedName("medium_url")

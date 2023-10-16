@@ -12,12 +12,25 @@
         android:id="@+id/BionationNewsText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="35sp"
-        android:text="Bionation News"
+        android:textSize="24sp"
+        android:text="Latest News"
         android:layout_marginStart="10dp"
         android:layout_marginTop="30dp"
         android:textColor="@color/dark_grey"
         android:textStyle="bold"
+        />
+
+    <TextView
+        android:id="@+id/RecommendationTopicViewAll"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:text="View All"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="30dp"
+        android:layout_marginEnd="20dp"
+        android:layout_alignBaseline="@id/BionationNewsText"
+        android:textColor="@color/blue"
         />
 
     <androidx.recyclerview.widget.RecyclerView
@@ -26,7 +39,6 @@
         android:layout_height="match_parent"
         tools:listitem="@layout/news_articles_layout"
         android:layout_below="@+id/BionationNewsText"
-        android:layout_marginBottom="50dp"
-        />
+        android:layout_marginBottom="50dp"/>
 
 </RelativeLayout>

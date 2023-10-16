@@ -31,8 +31,8 @@
 
         <activity
             android:name=".BottomNavigation"
-            android:label="@string/title_activity_bottom_navigation">
-        </activity>
+            android:label="@string/title_activity_bottom_navigation"/>
+        <activity android:name=".ui.updates.NewsArticleActivity"/>
         <activity
             android:name=".SplashScreen"
             android:theme="@style/SplashTheme">

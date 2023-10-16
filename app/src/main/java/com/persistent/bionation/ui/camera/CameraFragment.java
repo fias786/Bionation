@@ -7,11 +7,14 @@ import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.location.Location;
+import android.location.LocationListener;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.Html;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,6 +42,23 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.Priority;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CircleOptions;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.TileOverlay;
+import com.google.android.gms.maps.model.TileOverlayOptions;
+import com.google.android.gms.maps.model.TileProvider;
+import com.google.android.gms.maps.model.UrlTileProvider;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -51,8 +71,11 @@ import com.persistent.bionation.data.ObservationImageData;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -63,15 +86,18 @@ import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import retrofit2.Call;
 import retrofit2.Callback;
+import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.GET;
+import retrofit2.http.Path;
 import retrofit2.http.Query;
 
-public class CameraFragment extends Fragment {
+public class CameraFragment extends Fragment implements LocationListener, OnMapReadyCallback {
 
     private static final String TAG = "CameraFragment";
-    private static final String API_URL = "https://api.inaturalist.org/v1/" ;
+    private static final String API_URL = "https://api.inaturalist.org/v1/";
+    private static final String Wiki_URL = "https://en.wikipedia.org/api/rest_v1/";
 
     PreviewView previewView;
     private BottomNavigationView bottomNavigationView;
@@ -90,6 +116,12 @@ public class CameraFragment extends Fragment {
     private TextView observationIsThreatened;
     Observations observations;
     Observation observationResult;
+    WikipediaSummary wikipediaSummary;
+    double lat=0.0,lng=0.0;
+    GoogleMap mMap;
+    private FusedLocationProviderClient mFusedLocationClient;
+    private LocationCallback mLocationCallback;
+    private static final long UPDATE_INTERVAL_IN_MILLISECONDS = 1000;
     private BottomSheetBehavior imageGalleryBottomSheetBehavior;
     private BottomSheetBehavior.BottomSheetCallback imageGalleryBottomSheetCallback;
     private RecyclerView imageGalleryRecyclerView;
@@ -99,10 +131,74 @@ public class CameraFragment extends Fragment {
     private ArrayList<ObservationImageData> loadObservationImages = new ArrayList<>();
     SortedMap<Float,Map<String,SpeciesObject>> result;
     private boolean changeObservationOverlay = true;
+    TileOverlay gridTileOverlay;
+    TileOverlay pointTileOverlay;
+    String placeText = "";
+    SupportMapFragment mapFragment;
+
+    @Override
+    public void onMapReady(@NonNull GoogleMap googleMap) {
+        mMap = googleMap;
+
+        if(gridTileOverlay!=null){
+            gridTileOverlay.remove();
+        }
+        if(pointTileOverlay!=null){
+            pointTileOverlay.remove();
+        }
+
+        TileProvider gridTileProvider = new UrlTileProvider(256,256) {
+            @Nullable
+            @Override
+            public URL getTileUrl(int i, int i1, int i2) {
+                if( i2 > 10){
+                    return null;
+                }
+                String s  = String.format(Locale.ENGLISH, API_URL + "grid/%d/%d/%d.png?taxon_name=%s",i2,i,i1,placeText);
+                Log.d(TAG, "getTileUrl: "+s);
+                try {
+                    return new URL(s);
+                }catch (MalformedURLException e){
+                    throw  new AssertionError(e);
+                }
+            }
+        };
+
+        TileProvider pointTileProvider = new UrlTileProvider(256,256) {
+            @Nullable
+            @Override
+            public URL getTileUrl(int i, int i1, int i2) {
+                if( i2 <= 10){
+                    return null;
+                }
+                String s  = String.format(Locale.ENGLISH, API_URL + "points/%d/%d/%d.png?taxon_name=%s",i2,i,i1,placeText);
+                Log.d(TAG, "getTileUrl: "+s);
+                try {
+                    return new URL(s);
+                }catch (MalformedURLException e){
+                    throw  new AssertionError(e);
+                }
+            }
+
+        };
+
+        gridTileOverlay = mMap.addTileOverlay(new TileOverlayOptions().transparency((float)0.25).tileProvider(gridTileProvider));
+        pointTileOverlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(pointTileProvider));
+    }
+
+    @Override
+    public void onLocationChanged(@NonNull Location location) {
+
+    }
 
     public interface Observations {
         @GET("observations?")
         Call<Observation> observations(@Query("verifiable") boolean verifiable, @Query("taxon_id") int taxonId, @Query("per_page") String perPage, @Query("page") String page);
+    }
+
+    public interface WikipediaSummary {
+        @GET("page/summary/{title}")
+        Call<WikipediaSummaryData> wikipediaSummary(@Path("title") String title);
     }
 
     @Override
@@ -116,6 +212,7 @@ public class CameraFragment extends Fragment {
 
     Realm realm;
 
+    @SuppressLint("MissingPermission")
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_camera, container, false);
@@ -133,6 +230,10 @@ public class CameraFragment extends Fragment {
         observationIsThreatened = root.findViewById(R.id.CameraBottomSheet_ObservationIsThreatenedText);
         imageGalleryRecyclerView = root.findViewById(R.id.ImageGalleryRecyclerView);
         observationRecyclerView = root.findViewById(R.id.BottomSheet_ObservationRecyclerView);
+        mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.CameraMap);
+        assert mapFragment != null;
+        mapFragment.getMapAsync(this);
+        mapFragment.getView().setVisibility(View.INVISIBLE);
         getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
         getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         bottomNavigationView = requireActivity().findViewById(R.id.nav_view);
@@ -142,6 +243,21 @@ public class CameraFragment extends Fragment {
         previewView = root.findViewById(R.id.CameraPreview);
         getPermission();
         startCamera();
+
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
+
+        mFusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY,null).addOnSuccessListener(new OnSuccessListener<Location>() {
+            @Override
+            public void onSuccess(Location location) {
+                lat = location.getLatitude();
+                lng = location.getLongitude();
+                LatLng latLng = new LatLng(lat,lng);
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng,13));
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng,13));
+
+            }
+
+        });
 
         try {
             AssetFileDescriptor model = requireActivity().getAssets().openFd("model.tflite");
@@ -157,7 +273,14 @@ public class CameraFragment extends Fragment {
                         .addConverterFactory(GsonConverterFactory.create())
                         .build();
 
+        Retrofit wikipediaRetrofit =
+                new Retrofit.Builder()
+                        .baseUrl(Wiki_URL)
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .build();
+
         observations = retrofit.create(Observations.class);
+        wikipediaSummary = wikipediaRetrofit.create(WikipediaSummary.class);
 
         observationRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(),LinearLayoutManager.HORIZONTAL,false));
         observationRecyclerView.setHasFixedSize(true);
@@ -226,6 +349,10 @@ public class CameraFragment extends Fragment {
                         observationWikipediaTextView.setText("");
                         observationIsThreatened.setText("");
                         bottomSheetImageVIew.setImageResource(0);
+                        result.clear();
+                        loadObservationImages.clear();
+                        observationImageAdapter.notifyDataSetChanged();
+                        mapFragment.getView().setVisibility(View.INVISIBLE);
                         break;
                     case BottomSheetBehavior.STATE_SETTLING:
                         //Log.d(TAG, "onStateChanged: Settling");
@@ -268,6 +395,7 @@ public class CameraFragment extends Fragment {
                         result.clear();
                         loadObservationImages.clear();
                         observationImageAdapter.notifyDataSetChanged();
+                        mapFragment.getView().setVisibility(View.INVISIBLE);
                         break;
                     case BottomSheetBehavior.STATE_SETTLING:
                         //Log.d(TAG, "onStateChanged: Settling");
@@ -287,7 +415,7 @@ public class CameraFragment extends Fragment {
 
         imageGalleryRecyclerView.setLayoutManager(new GridLayoutManager(getContext(),4));
         imageGalleryRecyclerView.setHasFixedSize(true);
-        imageGalleryRecyclerView.setAdapter(new ImageRecyclerViewAdapter(getContext(),requireActivity(),observationCommonNameTextView,observationIsThreatened,observationImageAdapter,loadObservationImages,bottomSheetBehavior,imageGalleryBottomSheetBehavior,loadImagesFromGallery()));
+        imageGalleryRecyclerView.setAdapter(new ImageRecyclerViewAdapter(getContext(),requireActivity(),observationCommonNameTextView,observationIsThreatened,observationImageAdapter,loadObservationImages,observationWikipediaTextView,bottomSheetBehavior,imageGalleryBottomSheetBehavior,loadImagesFromGallery()));
 
         cameraFlash.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -322,8 +450,12 @@ public class CameraFragment extends Fragment {
         cameraCapture.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                observationCommonNameTextView.setText("");
+                observationWikipediaTextView.setText("");
+                observationIsThreatened.setText("");
                 loadObservationImages.clear();
                 observationImageAdapter.notifyDataSetChanged();
+                mapFragment.getView().setVisibility(View.INVISIBLE);
                 if(result.get(10.0f)!=null){
                     bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
                     Call<Observation> call = observations.observations(true,result.get(10.0f).get("species").taxon_id,"30","1");
@@ -332,14 +464,22 @@ public class CameraFragment extends Fragment {
                         public void onResponse(Call<Observation> call, retrofit2.Response<Observation> response) {
                             observationResult = response.body();
                             requireActivity().runOnUiThread(new Runnable() {
+                                @SuppressLint("SetTextI18n")
                                 @Override
                                 public void run() {
                                     ObservationItems resultObservation = observationResult.observationItems.get(0);
                                     observationCommonNameTextView.setText(resultObservation.taxon.scientificName);
-                                    if(resultObservation.taxon.isThreatened.equals("true")){
-                                        observationIsThreatened.setText("Species Threatened: Yes");
+                                    if(resultObservation.taxon.scientificName.split(" ").length>1){
+                                        placeText = resultObservation.taxon.scientificName.split(" ")[0];
                                     }else{
-                                        observationIsThreatened.setText("Species Threatened: No");
+                                        placeText = resultObservation.taxon.scientificName;
+                                    }
+                                    mapFragment.getView().setVisibility(View.VISIBLE);
+
+                                    if(resultObservation.taxon.isThreatened.equals("true")){
+                                        observationIsThreatened.setText("Common Name: "+resultObservation.taxon.commonName+"\n\nIs Species Threatened: Yes\nObservation Count: "+resultObservation.taxon.observations_count);
+                                    }else{
+                                        observationIsThreatened.setText("Common Name: "+resultObservation.taxon.commonName+"\n\nIs Species Threatened: No\nObservation Count: "+resultObservation.taxon.observations_count);
                                     }
                                     List<String> imageUrls = new ArrayList<>();
                                     for (int i = 0; i < observationResult.observationItems.size(); i++) {
@@ -365,10 +505,22 @@ public class CameraFragment extends Fragment {
                                     if(resultObservation.taxon.wikipediaSummary != null){
                                         observationWikipediaTextView.setText(Html.fromHtml(resultObservation.taxon.wikipediaSummary));
                                     }else {
-                                        observationWikipediaTextView.setText("");
+                                        Call<WikipediaSummaryData> wikipediaSummaryDataCall = wikipediaSummary.wikipediaSummary(resultObservation.taxon.scientificName);
+                                        wikipediaSummaryDataCall.enqueue(new Callback<WikipediaSummaryData>() {
+                                            @Override
+                                            public void onResponse(Call<WikipediaSummaryData> call, Response<WikipediaSummaryData> response) {
+                                                WikipediaSummaryData wikipediaSummaryData = response.body();
+                                                if(wikipediaSummaryData!=null && wikipediaSummaryData.extract_html!=null && !wikipediaSummaryData.extract_html.equals("")) {
+                                                    observationWikipediaTextView.setText(Html.fromHtml(wikipediaSummaryData.extract_html));
+                                                }
+                                            }
+
+                                            @Override
+                                            public void onFailure(Call<WikipediaSummaryData> call, Throwable t) {
+
+                                            }
+                                        });
                                     }
-
-
 
                                 }
                             });

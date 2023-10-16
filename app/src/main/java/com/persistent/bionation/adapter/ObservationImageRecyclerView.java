@@ -42,19 +42,19 @@ public class ObservationImageRecyclerView  extends RecyclerView.Adapter<Observat
         holder.largeImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(context,""+position,Toast.LENGTH_SHORT).show();
+                //Toast.makeText(context,""+position,Toast.LENGTH_SHORT).show();
             }
         });
         holder.firstSmallImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(context,""+position,Toast.LENGTH_SHORT).show();
+                //Toast.makeText(context,""+position,Toast.LENGTH_SHORT).show();
             }
         });
         holder.secondSmallImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(context,""+position,Toast.LENGTH_SHORT).show();
+                //Toast.makeText(context,""+position,Toast.LENGTH_SHORT).show();
             }
         });
     }

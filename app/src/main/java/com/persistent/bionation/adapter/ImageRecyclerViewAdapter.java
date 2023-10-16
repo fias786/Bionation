@@ -35,6 +35,7 @@ import com.persistent.bionation.ui.camera.ObservationItems;
 import com.persistent.bionation.ui.camera.Prediction;
 import com.persistent.bionation.ui.camera.SpeciesObject;
 import com.persistent.bionation.ui.camera.Taxonomy;
+import com.persistent.bionation.ui.camera.WikipediaSummaryData;
 
 import org.w3c.dom.Text;
 
@@ -47,12 +48,14 @@ import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
+import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ImageRecyclerViewAdapter extends RecyclerView.Adapter<ImageRecyclerViewAdapter.ViewHolder> {
 
-    private static final String API_URL = "https://api.inaturalist.org/v1/" ;
+    private static final String API_URL = "https://api.inaturalist.org/v1/";
+    private static final String Wiki_URL = "https://en.wikipedia.org/api/rest_v1/";
 
     private Context context;
     private FragmentActivity activity;
@@ -61,12 +64,14 @@ public class ImageRecyclerViewAdapter extends RecyclerView.Adapter<ImageRecycler
     private BottomSheetBehavior bottomSheetBehavior;
     CameraFragment.Observations observations;
     Observation observationResult;
-    TextView observationCommonNameTextView,observationIsThreatened;
+    CameraFragment.WikipediaSummary wikipediaSummary;
+    TextView observationCommonNameTextView,observationIsThreatened,observationWikipediaTextView;
     private ObservationImageRecyclerView observationImageAdapter;
     private ArrayList<ObservationImageData> loadObservationImages;
 
     public ImageRecyclerViewAdapter(Context context, FragmentActivity activity, TextView observationCommonNameTextView,
-                                    TextView observationIsThreatened, ObservationImageRecyclerView observationImageAdapter,ArrayList<ObservationImageData> loadObservationImages,
+                                    TextView observationIsThreatened, ObservationImageRecyclerView observationImageAdapter,
+                                    ArrayList<ObservationImageData> loadObservationImages, TextView observationWikipediaTextView,
                                     BottomSheetBehavior bottomSheetBehavior, BottomSheetBehavior imageBottomSheetBehaviour,
                                     ArrayList<ImageGalleryData> data) {
         this.context = context;
@@ -75,6 +80,7 @@ public class ImageRecyclerViewAdapter extends RecyclerView.Adapter<ImageRecycler
         this.observationIsThreatened = observationIsThreatened;
         this.observationImageAdapter = observationImageAdapter;
         this.loadObservationImages = loadObservationImages;
+        this.observationWikipediaTextView = observationWikipediaTextView;
         this.data = data;
         this.bottomSheetBehavior = bottomSheetBehavior;
         this.imageBottomSheetBehaviour = imageBottomSheetBehaviour;
@@ -94,6 +100,8 @@ public class ImageRecyclerViewAdapter extends RecyclerView.Adapter<ImageRecycler
         holder.galleryImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                observationCommonNameTextView.setText("");
+                observationIsThreatened.setText("");
                 loadObservationImages.clear();
                 observationImageAdapter.notifyDataSetChanged();
                 ImageClassifier imageClassifier;
@@ -142,20 +150,28 @@ public class ImageRecyclerViewAdapter extends RecyclerView.Adapter<ImageRecycler
 
                                     observations = retrofit.create(CameraFragment.Observations.class);
 
+                                    Retrofit wikipediaRetrofit =
+                                            new Retrofit.Builder()
+                                                    .baseUrl(Wiki_URL)
+                                                    .addConverterFactory(GsonConverterFactory.create())
+                                                    .build();
+                                    wikipediaSummary = wikipediaRetrofit.create(CameraFragment.WikipediaSummary.class);
+
                                     Call<Observation> call = observations.observations(true,map.get("species").taxon_id,"30","1");
                                     call.enqueue(new Callback<Observation>() {
                                         @Override
                                         public void onResponse(Call<Observation> call, retrofit2.Response<Observation> response) {
                                             observationResult = response.body();
                                             activity.runOnUiThread(new Runnable() {
+                                                @SuppressLint("SetTextI18n")
                                                 @Override
                                                 public void run() {
                                                     ObservationItems resultObservation = observationResult.observationItems.get(0);
                                                     observationCommonNameTextView.setText(resultObservation.taxon.scientificName);
                                                     if (resultObservation.taxon.isThreatened.equals("true")) {
-                                                        observationIsThreatened.setText("Species Threatened: Yes");
+                                                        observationIsThreatened.setText("Common Name: "+resultObservation.taxon.commonName+"\n\nIs Species Threatened: Yes\nObservation Count: "+resultObservation.taxon.observations_count);
                                                     } else {
-                                                        observationIsThreatened.setText("Species Threatened: No");
+                                                        observationIsThreatened.setText("Common Name: "+resultObservation.taxon.commonName+"\n\nIs Species Threatened: No\nObservation Count: "+resultObservation.taxon.observations_count);
                                                     }
                                                     List<String> imageUrls = new ArrayList<>();
                                                     for (int i = 0; i < observationResult.observationItems.size(); i++) {
@@ -173,6 +189,22 @@ public class ImageRecyclerViewAdapter extends RecyclerView.Adapter<ImageRecycler
                                                         loadObservationImages.add(observationImageData);
                                                         observationImageAdapter.notifyDataSetChanged();
                                                     }
+
+                                                    Call<WikipediaSummaryData> wikipediaSummaryDataCall = wikipediaSummary.wikipediaSummary(resultObservation.taxon.scientificName);
+                                                    wikipediaSummaryDataCall.enqueue(new Callback<WikipediaSummaryData>() {
+                                                        @Override
+                                                        public void onResponse(Call<WikipediaSummaryData> call, Response<WikipediaSummaryData> response) {
+                                                            WikipediaSummaryData wikipediaSummaryData = response.body();
+                                                            if(wikipediaSummaryData!=null && wikipediaSummaryData.extract_html!=null && !wikipediaSummaryData.extract_html.equals("")) {
+                                                                observationWikipediaTextView.setText(Html.fromHtml(wikipediaSummaryData.extract_html));
+                                                            }
+                                                        }
+
+                                                        @Override
+                                                        public void onFailure(Call<WikipediaSummaryData> call, Throwable t) {
+
+                                                        }
+                                                    });
 
                                                 }
                                             });
