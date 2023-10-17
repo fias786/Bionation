@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    >
+
+    <ImageView
+        android:id="@+id/CurrentBadge"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="40dp"
+        tools:background="@drawable/empty_badge"
+        />
+
+    <LinearLayout
+        android:id="@+id/BadgesLinearLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/CurrentBadge"
+        android:layout_marginBottom="10dp"
+        >
+
+    <TextView
+        android:id="@+id/ObservationBadgeCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/dark_grey"
+        android:textSize="18sp"
+        tools:text="Need 49 more observations to achieve"
+        />
+
+    <ImageView
+        android:id="@+id/ObservationBadgeIcon"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        tools:background="@drawable/silver_badge"
+        />
+
+    </LinearLayout>
+
+    <TextView
+        android:visibility="gone"
+        android:id="@+id/BadgesNoObservation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="No observation available"
+        android:textSize="22sp"
+        />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/BadgesRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:listitem="@layout/badge_recycler_view_layout"
+        android:layout_below="@+id/BadgesLinearLayout"/>
+
+</RelativeLayout>

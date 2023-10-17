@@ -3,6 +3,6 @@
     <string name="title_activity_bottom_navigation">Bionation</string>
     <string name="explore">Explore</string>
     <string name="camera">Camera</string>
-    <string name="updates">Updates</string>
+    <string name="updates">News</string>
     <string name="settings">Settings</string>
 </resources>

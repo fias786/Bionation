@@ -281,7 +281,7 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
                         if( i2 > 10){
                             return null;
                         }
-                        String s  = String.format(Locale.ENGLISH, API_URL + "grid/%d/%d/%d.png?taxon_name=%s",i2,i,i1,placeText);
+                        String s  = String.format(Locale.ENGLISH, API_URL + "grid/%d/%d/%d.png?taxon_name=%s&color=blue",i2,i,i1,placeText);
                         Log.d(TAG, "getTileUrl: "+s);
                         try {
                             return new URL(s);
@@ -535,7 +535,7 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
                 if( i2 > 10){
                     return null;
                 }
-                String s  = String.format(Locale.ENGLISH, API_URL + "grid/%d/%d/%d.png?taxon_name=%s",i2,i,i1,placeText);
+                String s  = String.format(Locale.ENGLISH, API_URL + "grid/%d/%d/%d.png?taxon_name=%s&color=blue",i2,i,i1,placeText);
                 Log.d(TAG, "getTileUrl: "+s);
                 try {
                     return new URL(s);
@@ -613,6 +613,7 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
                                     public void onResponse(Call<Observation> call, Response<Observation> response) {
                                         observationResult = response.body();
                                         requireActivity().runOnUiThread(new Runnable() {
+                                            @SuppressLint("SetTextI18n")
                                             @Override
                                             public void run() {
                                                 genAITextView.setText("");
@@ -623,9 +624,17 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
                                                 Log.d(TAG, "Observation run: " + resultObservation.taxon.commonName);
                                                 observationCommonNameTextView.setText(resultObservation.taxon.scientificName);
                                                 if(address!=null && address.getAddressLine(0)!=null){
-                                                    addressTextView.setText(address.getAddressLine(0));
+                                                    if(resultObservation.taxon.commonName!=null && resultObservation.taxon.commonName!=""){
+                                                        addressTextView.setText("Common Name: "+resultObservation.taxon.commonName+"\n\n"+address.getAddressLine(0));
+                                                    }else{
+                                                        addressTextView.setText(address.getAddressLine(0));
+                                                    }
                                                 }else{
-                                                    addressTextView.setText("Unknown Location");
+                                                    if(resultObservation.taxon.commonName!=null && resultObservation.taxon.commonName!=""){
+                                                        addressTextView.setText("Common Name: "+resultObservation.taxon.commonName+"\n\n"+"Unknown Location");
+                                                    }else{
+                                                        addressTextView.setText("Unknown Location");
+                                                    }
                                                 }
 
                                                 Glide.with(requireActivity())
@@ -678,7 +687,14 @@ public class ExploreFragment extends Fragment implements LocationListener, OnMap
                                                     public void run() {
                                                         OkHttpClient client = new OkHttpClient().newBuilder().build();
                                                         okhttp3.MediaType mediaType = okhttp3.MediaType.parse("application/json");
-                                                        okhttp3.RequestBody body = okhttp3.RequestBody.create(mediaType, "{\r\n\r\n \"model_id\": \"google/flan-t5-xxl\",\r\n\r\n \"input\": \"tell me something about "+resultObservation.taxon.scientificName+ " \\nTopic: biodiversity, extinction, disaster, wildlife, conservation, protection, habitat, mammals, birds, marine animals, wildfires, wetlands, rainforests, mangroves, encroachment, plastic\\\\nTone: energetic\\\\n\",\r\n\r\n \"parameters\": {\r\n\r\n \"decoding_method\": \"sample\",\r\n\r\n \"max_new_tokens\": 200,\r\n\r\n \"min_new_tokens\": 50,\r\n\r\n \"random_seed\": 111,\r\n\r\n \"stop_sequences\": [],\r\n\r\n \"temperature\": 0.17,\r\n\r\n \"top_k\": 10,\r\n\r\n \"top_p\": 1,\r\n\r\n \"repetition_penalty\": 2\r\n\r\n },\r\n\r\n \"project_id\": \"20fd5695-7674-48b7-867b-ab0a9908ba5a\"\r\n\r\n}");
+                                                        String mediaTypeData = "";
+                                                        if(resultObservation.taxon.commonName!=null && resultObservation.taxon.commonName!=""){
+                                                            mediaTypeData = "{\r\n\r\n \"model_id\": \"google/flan-t5-xxl\",\r\n\r\n \"input\": \"tell me something about "+resultObservation.taxon.commonName+" \\nTopic: biodiversity, extinction, disaster, wildlife, conservation, protection, habitat, mammals, birds, marine animals, wildfires, wetlands, rainforests, mangroves, encroachment, plastic\\\\nTone: energetic\\\\n\",\r\n\r\n \"parameters\": {\r\n\r\n \"decoding_method\": \"sample\",\r\n\r\n \"max_new_tokens\": 200,\r\n\r\n \"min_new_tokens\": 50,\r\n\r\n \"random_seed\": 111,\r\n\r\n \"stop_sequences\": [],\r\n\r\n \"temperature\": 0.17,\r\n\r\n \"top_k\": 10,\r\n\r\n \"top_p\": 1,\r\n\r\n \"repetition_penalty\": 2\r\n\r\n },\r\n\r\n \"project_id\": \"20fd5695-7674-48b7-867b-ab0a9908ba5a\"\r\n\r\n}";
+                                                        }else{
+                                                            mediaTypeData = "{\r\n\r\n \"model_id\": \"google/flan-t5-xxl\",\r\n\r\n \"input\": \"tell me something about Biodiversity \\nTopic: biodiversity, extinction, disaster, wildlife, conservation, protection, habitat, mammals, birds, marine animals, wildfires, wetlands, rainforests, mangroves, encroachment, plastic\\\\nTone: energetic\\\\n\",\r\n\r\n \"parameters\": {\r\n\r\n \"decoding_method\": \"sample\",\r\n\r\n \"max_new_tokens\": 200,\r\n\r\n \"min_new_tokens\": 50,\r\n\r\n \"random_seed\": 111,\r\n\r\n \"stop_sequences\": [],\r\n\r\n \"temperature\": 0.17,\r\n\r\n \"top_k\": 10,\r\n\r\n \"top_p\": 1,\r\n\r\n \"repetition_penalty\": 2\r\n\r\n },\r\n\r\n \"project_id\": \"20fd5695-7674-48b7-867b-ab0a9908ba5a\"\r\n\r\n}";
+                                                        }
+                                                        Log.d(TAG, "Gen AI run: "+mediaTypeData);
+                                                        okhttp3.RequestBody body = okhttp3.RequestBody.create(mediaType, mediaTypeData);
                                                         Request request = new Request.Builder().url("https://eu-de.ml.cloud.ibm.com/ml/v1-beta/generation/text?version=2023-05-29")
                                                                 .method("POST", body)
                                                                 .addHeader("Authorization", "Bearer "+genAIAccessToken)

@@ -2,6 +2,7 @@ package com.persistent.bionation.ui.camera;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
@@ -26,6 +27,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.camera.core.Camera;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageAnalysis;
@@ -35,6 +37,9 @@ import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.datastore.core.DataStore;
+import androidx.datastore.core.DataStoreFactory;
+import androidx.datastore.preferences.core.Preferences;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -65,6 +70,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.persistent.bionation.R;
 import com.persistent.bionation.adapter.ImageRecyclerViewAdapter;
 import com.persistent.bionation.adapter.ObservationImageRecyclerView;
+import com.persistent.bionation.data.BadgesDataObject;
 import com.persistent.bionation.data.CommonName;
 import com.persistent.bionation.data.ImageGalleryData;
 import com.persistent.bionation.data.ObservationImageData;
@@ -73,12 +79,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 
@@ -106,7 +115,7 @@ public class CameraFragment extends Fragment implements LocationListener, OnMapR
     private ProcessCameraProvider cameraProvider;
     private Camera camera;
     private OverlayView overlayView;
-    private ImageButton cameraCapture,cameraFlash, closeCamera, cameraGallery,cameraSetting;
+    private ImageButton cameraCapture,cameraFlash, closeCamera, cameraGallery,cameraSetting,cameraBadges;
     private boolean isFlashOn = false;
     private BottomSheetBehavior bottomSheetBehavior;
     private BottomSheetBehavior.BottomSheetCallback bottomSheetCallback;
@@ -207,10 +216,11 @@ public class CameraFragment extends Fragment implements LocationListener, OnMapR
         cameraProviderFuture = ProcessCameraProvider.getInstance(getContext());
         Realm.init(getContext());
         Realm.setDefaultConfiguration(new RealmConfiguration.Builder().name("CommonName").deleteRealmIfMigrationNeeded().allowWritesOnUiThread(true).allowQueriesOnUiThread(true).build());
+        Realm.setDefaultConfiguration(new RealmConfiguration.Builder().name("BadgesData").deleteRealmIfMigrationNeeded().allowWritesOnUiThread(true).allowQueriesOnUiThread(true).build());
 
     }
 
-    Realm realm;
+    Realm realm,badgeRealm;
 
     @SuppressLint("MissingPermission")
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -224,6 +234,7 @@ public class CameraFragment extends Fragment implements LocationListener, OnMapR
         closeCamera = root.findViewById(R.id.CloseCamera);
         cameraGallery = root.findViewById(R.id.CameraGallery);
         cameraSetting = root.findViewById(R.id.CameraSetting);
+        cameraBadges = root.findViewById(R.id.CameraBadges);
         observationCommonNameTextView = root.findViewById(R.id.CameraBottomSheet_ObservationNameText);
         bottomSheetImageVIew = root.findViewById(R.id.CameraBottomSheet_Image);
         observationWikipediaTextView = root.findViewById(R.id.CameraBottomSheet_ObservationWikipediaText);
@@ -243,6 +254,17 @@ public class CameraFragment extends Fragment implements LocationListener, OnMapR
         previewView = root.findViewById(R.id.CameraPreview);
         getPermission();
         startCamera();
+
+        if(SharedPrefs.readSharedSetting(requireActivity(),"badges") == 0){
+            cameraBadges.setBackgroundResource(R.drawable.empty_badge);
+        }else if(SharedPrefs.readSharedSetting(requireActivity(),"badges") > 0 && SharedPrefs.readSharedSetting(requireActivity(),"badges") <= 50){
+            cameraBadges.setBackgroundResource(R.drawable.bronze_badge);
+        }else if(SharedPrefs.readSharedSetting(requireActivity(),"badges") > 50 && SharedPrefs.readSharedSetting(requireActivity(),"badges") <= 100){
+            cameraBadges.setBackgroundResource(R.drawable.silver_badge);
+        }else{
+            cameraBadges.setBackgroundResource(R.drawable.gold_badge);
+        }
+
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
 
@@ -289,6 +311,7 @@ public class CameraFragment extends Fragment implements LocationListener, OnMapR
 
 
         realm = Realm.getDefaultInstance();
+        badgeRealm = Realm.getDefaultInstance();
 
         realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
@@ -522,6 +545,40 @@ public class CameraFragment extends Fragment implements LocationListener, OnMapR
                                         });
                                     }
 
+                                    SharedPrefs.saveSharedSetting(requireActivity(),"badges",SharedPrefs.readSharedSetting(requireActivity(),"badges")+1);
+                                    badgeRealm.executeTransactionAsync(new Realm.Transaction() {
+                                        @RequiresApi(api = Build.VERSION_CODES.O)
+                                        @Override
+                                        public void execute(Realm realm) {
+                                            BadgesDataObject badgesDataObject = realm.createObject(BadgesDataObject.class, UUID.randomUUID().toString());
+                                            badgesDataObject.setImageUrl(resultObservation.taxon.speciesPhoto.photoMediumUrl);
+                                            badgesDataObject.setScientific_name(resultObservation.taxon.scientificName);
+                                            LocalDateTime date = LocalDateTime.now();
+                                            String time="";
+                                            if(date.getHour()>12){
+                                                time = date.getHour()-12 + ":"+date.getMinute()+" pm";
+                                            }else{
+                                                time = date.getHour() + ":"+date.getMinute()+" am";
+                                            }
+                                            badgesDataObject.setTime(date.getMonth() + " " +date.getDayOfMonth()+", "+date.getYear()+ " at "+time);
+                                            if(resultObservation.taxon.commonName!=null && resultObservation.taxon.commonName!=""){
+                                                badgesDataObject.setCommonName("Common Name: "+resultObservation.taxon.commonName);
+                                            }else{
+                                                badgesDataObject.setCommonName("Common Name: Unavailable");
+                                            }
+                                            badgesDataObject.setIsThreatened("Threatened: "+resultObservation.taxon.isThreatened);
+                                            badgesDataObject.setObserveCount("Observe Count: "+resultObservation.taxon.observations_count);
+                                        }
+                                    });
+                                    if(SharedPrefs.readSharedSetting(requireActivity(),"badges") == 0){
+                                        cameraBadges.setBackgroundResource(R.drawable.empty_badge);
+                                    }else if(SharedPrefs.readSharedSetting(requireActivity(),"badges") > 0 && SharedPrefs.readSharedSetting(requireActivity(),"badges") <= 50){
+                                        cameraBadges.setBackgroundResource(R.drawable.bronze_badge);
+                                    }else if(SharedPrefs.readSharedSetting(requireActivity(),"badges") > 50 && SharedPrefs.readSharedSetting(requireActivity(),"badges") <= 100){
+                                        cameraBadges.setBackgroundResource(R.drawable.silver_badge);
+                                    }else{
+                                        cameraBadges.setBackgroundResource(R.drawable.gold_badge);
+                                    }
                                 }
                             });
                         }
@@ -554,6 +611,14 @@ public class CameraFragment extends Fragment implements LocationListener, OnMapR
                     Toast.makeText(getContext(),"Show all taxonomy levels",Toast.LENGTH_LONG).show();
                     changeObservationOverlay = true;
                 }
+            }
+        });
+
+        cameraBadges.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(requireActivity(),ObservationBadges.class);
+                startActivity(intent);
             }
         });
 
@@ -633,12 +698,13 @@ public class CameraFragment extends Fragment implements LocationListener, OnMapR
                             Map<String, SpeciesObject> map = Taxonomy.predictionToMap(prediction);
                             if (map == null) continue;
                             results.put(prediction.node.rank, map);
-                            if (prediction.node.rank <= 50.0f) {
+                            if (prediction.node.rank <= 40.0f) {
                                 overlayView.setResults(results,changeObservationOverlay,realm);
                                 result = results;
                             } else{
                                 overlayView.setResults(null,changeObservationOverlay,realm);
                                 overlayView.clear();
+                                results.clear();
                             }
                         }
                     }

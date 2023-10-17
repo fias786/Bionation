@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_margin="15dp"
+    android:orientation="vertical"
+    android:background="@color/white"
+    android:id="@+id/NewsCardView"
+    >
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/ImageCardView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="15dp"
+        >
+
+        <ImageView
+            android:id="@+id/badgesImage"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            tools:src="@tools:sample/avatars"
+            android:scaleType="centerCrop"
+            />
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <TextView
+        android:id="@+id/badgesTitle"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        tools:text="GST Council News LIVE"
+        android:textSize="18sp"
+        android:fontFamily="@font/roboto_bold"
+        android:layout_marginStart="5dp"
+        android:textColor="#686666"
+        android:layout_toEndOf="@id/ImageCardView"
+        />
+
+    <TextView
+        android:id="@+id/badgesCommonName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="September 13, 2023 at 9:14 pm"
+        android:textSize="12sp"
+        android:layout_marginTop="5dp"
+        android:layout_marginStart="10dp"
+        android:textColor="@color/dark_grey"
+        android:layout_below="@+id/badgesTitle"
+        android:layout_toEndOf="@id/ImageCardView"
+        />
+
+    <TextView
+        android:id="@+id/badgesIsThreatened"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="September 13, 2023 at 9:14 pm"
+        android:textSize="12sp"
+        android:layout_marginTop="5dp"
+        android:layout_marginStart="10dp"
+        android:textColor="@color/dark_grey"
+        android:layout_below="@+id/badgesCommonName"
+        android:layout_toEndOf="@id/ImageCardView"
+        />
+    <TextView
+        android:id="@+id/badgesIsObserveCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="September 13, 2023 at 9:14 pm"
+        android:textSize="12sp"
+        android:layout_marginTop="5dp"
+        android:layout_marginStart="10dp"
+        android:textColor="@color/dark_grey"
+        android:layout_below="@+id/badgesIsThreatened"
+        android:layout_toEndOf="@id/ImageCardView"
+        />
+
+    <TextView
+        android:id="@+id/badgesTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="September 13, 2023 at 9:14 pm"
+        android:textSize="12sp"
+        android:layout_marginTop="5dp"
+        android:layout_marginStart="10dp"
+        android:textColor="@color/dark_grey"
+        android:layout_below="@+id/badgesIsObserveCount"
+        android:layout_toEndOf="@id/ImageCardView"
+        />
+</RelativeLayout>

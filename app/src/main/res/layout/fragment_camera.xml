@@ -66,12 +66,11 @@
             />
 
         <ImageButton
-            android:id="@+id/CameraOptions"
-            android:layout_width="25dp"
-            android:layout_height="25dp"
-            android:background="@drawable/ic_menu_options_24dp"
-            android:backgroundTint="@color/white"
-            android:layout_marginTop="48dp"
+            android:id="@+id/CameraBadges"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:background="@drawable/empty_badge"
+            android:layout_marginTop="45dp"
             android:layout_marginEnd="15dp"
             android:layout_alignParentEnd="true"
             />
