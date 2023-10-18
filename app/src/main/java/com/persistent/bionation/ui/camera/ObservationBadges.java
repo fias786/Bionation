@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
@@ -28,6 +29,8 @@ import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
 
 public class ObservationBadges extends AppCompatActivity {
+
+    private static final String TAG = "ObservationBadges";
 
     TextView observationBadgeCount,badgesNoObservation;
     ImageView observationBadgeIcon,currentBadge;
@@ -80,7 +83,7 @@ public class ObservationBadges extends AppCompatActivity {
         realm = Realm.getDefaultInstance();
 
         RealmResults<BadgesDataObject> realmResults = realm.where(BadgesDataObject.class).findAllAsync();
-        if(realmResults!=null){
+        if(realmResults!=null && realmResults.toArray().length>0){
             for(BadgesDataObject badgesDataObject : realmResults){
                 BadgeObservationData badgeObservationData = new BadgeObservationData(badgesDataObject.imageUrl,
                         badgesDataObject.scientific_name,badgesDataObject.time,

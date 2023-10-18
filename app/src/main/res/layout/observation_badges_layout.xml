@@ -44,6 +44,13 @@
 
     </LinearLayout>
 
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/BadgesRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:listitem="@layout/badge_recycler_view_layout"
+        android:layout_below="@+id/BadgesLinearLayout"/>
+
     <TextView
         android:visibility="gone"
         android:id="@+id/BadgesNoObservation"
@@ -51,14 +58,8 @@
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
         android:text="No observation available"
+        android:textColor="@color/dark_grey"
         android:textSize="22sp"
         />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/BadgesRecyclerView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:listitem="@layout/badge_recycler_view_layout"
-        android:layout_below="@+id/BadgesLinearLayout"/>
 
 </RelativeLayout>

@@ -1,93 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white"
     >
 
-    <TextView
-        android:drawableLeft="@drawable/ic_android_24dp"
-        android:drawableTint="@color/black"
-        android:drawablePadding="10dp"
-        android:id="@+id/SettingsAppName"
+    <ImageView
+        android:id="@+id/CurrentBadge"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="40dp"
+        tools:background="@drawable/empty_badge"
+        />
+
+    <LinearLayout
+        android:id="@+id/BadgesLinearLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="App Name : Bionation"
-        android:textSize="22sp"
-        android:layout_marginTop="50dp"
-        android:layout_marginStart="10dp"
-        android:textColor="@color/dark_grey"
+        android:orientation="horizontal"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/CurrentBadge"
+        android:layout_marginBottom="10dp"
+        >
+
+        <TextView
+            android:id="@+id/ObservationBadgeCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/dark_grey"
+            android:textSize="18sp"
+            tools:text="Need 49 more observations to achieve"
+            />
+
+        <ImageView
+            android:id="@+id/ObservationBadgeIcon"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            tools:background="@drawable/silver_badge"
+            />
+
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/BadgesRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:listitem="@layout/badge_recycler_view_layout"
+        android:layout_below="@+id/BadgesLinearLayout"
+        android:layout_marginBottom="50dp"
         />
 
     <TextView
-        android:drawableLeft="@drawable/ic_app_version_24dp"
-        android:drawableTint="@color/black"
-        android:drawablePadding="10dp"
-        android:id="@+id/SettingsAppVersion"
+        android:visibility="gone"
+        android:id="@+id/BadgesNoObservation"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Version : 1.0"
-        android:layout_below="@+id/SettingsAppName"
-        android:textSize="22sp"
-        android:layout_marginTop="10dp"
-        android:layout_marginStart="10dp"
+        android:layout_centerInParent="true"
+        android:text="No observation available"
         android:textColor="@color/dark_grey"
-        />
-
-    <TextView
-        android:drawableLeft="@drawable/app_update_icon"
-        android:drawablePadding="10dp"
-        android:id="@+id/SettingsAppUpdates"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Updates : No new updates available"
-        android:layout_below="@+id/SettingsAppVersion"
         android:textSize="22sp"
-        android:layout_marginTop="10dp"
-        android:layout_marginStart="10dp"
-        android:textColor="@color/dark_grey"
-        />
-    <TextView
-        android:drawableLeft="@drawable/ic_privacy_policy_24dp"
-        android:drawablePadding="10dp"
-        android:drawableTint="@color/black"
-        android:id="@+id/SettingsPrivacy"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Privacy Policy"
-        android:layout_below="@+id/SettingsAppUpdates"
-        android:textSize="22sp"
-        android:layout_marginTop="10dp"
-        android:layout_marginStart="10dp"
-        android:textColor="@color/dark_grey"
-        />
-
-    <TextView
-        android:drawableLeft="@drawable/help_icon"
-        android:drawablePadding="10dp"
-        android:id="@+id/SettingsHelp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Helps"
-        android:layout_below="@+id/SettingsPrivacy"
-        android:textSize="22sp"
-        android:layout_marginTop="10dp"
-        android:layout_marginStart="10dp"
-        android:textColor="@color/dark_grey"
-        />
-
-    <TextView
-        android:drawableLeft="@drawable/terms_icon"
-        android:drawablePadding="10dp"
-        android:id="@+id/SettingsTermsOfUse"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Terms of Use"
-        android:layout_below="@+id/SettingsHelp"
-        android:textSize="22sp"
-        android:layout_marginTop="10dp"
-        android:layout_marginStart="10dp"
-        android:textColor="@color/dark_grey"
         />
 
 </RelativeLayout>

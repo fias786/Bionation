@@ -20,10 +20,9 @@
         android:title="@string/updates" />
 
     <item
-        android:visible="false"
         android:id="@+id/navigation_settings"
         android:enabled="true"
-        android:icon="@drawable/ic_settings_24dp"
+        android:icon="@drawable/empty_badge"
         android:title="@string/settings" />
 
 </menu>
