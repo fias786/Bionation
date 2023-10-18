@@ -1,3 +1,4 @@
 Bionationv2.apk filter=lfs diff=lfs merge=lfs -text
 Bionationv3.apk filter=lfs diff=lfs merge=lfs -text
 Bionationv4.apk filter=lfs diff=lfs merge=lfs -text
+Bionationv5.apk filter=lfs diff=lfs merge=lfs -text
