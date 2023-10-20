@@ -87,7 +87,7 @@ REPLACE THIS SENTENCE with a short description of your team's solution, in about
 ### Solution architecture
 <p>
   <a>
-    <img src="https://github.com/fias786/Bionation/blob/master/images/SolutionArchitecture.png"  alt="Solution Architecture" >
+    ![Video transcription/translaftion app](https://github.com/fias786/Bionation/blob/master/images/SolutionArchitecture.png)
   </a>
 </p>
 
