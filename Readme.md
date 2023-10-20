@@ -39,7 +39,7 @@
 
 ### How our technology solution can help
 
-REPLACE THIS SENTENCE with a short description of your team's solution, in about 10 words.
+Through Bionation app, we aim to raise awareness by enabling smartphone users to quickly learn more about their environment.
 
 ### Our idea
 
