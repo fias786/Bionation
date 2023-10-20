@@ -202,7 +202,7 @@ In the future we plan to...
  - Step 2: Please ensure your GPS & Internet On 
  - Step 3: Launch an App
  - Step 4: Give asked permissions related to Location, Camera, and Audio.
- - Step 5: In explore section, you will able to see observations of different species arround yor on Google map and click on observation tile to get deatils of species. You can also search for specific species.
+ - Step 5: In explore section, you will able to see observations of different species arround you on Google map and click on observation tile to get deatils of species. You can also search for specific species.
  - Step 6: In camera section, you can detect species using camera. After species is detected, you can know more about that species by clicking capture button there.
  - Step 7: In News section, you can see news & updates regarding Biodiversity.
  - Step 8: In Badges section, you can see your see camera detected species and you'll get badges based on that.
