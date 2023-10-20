@@ -212,7 +212,7 @@ In the future we plan to...
 
 ### Versioning
 
-We have version lastest version of app
+We have lastest version of app
 
 ### License
 
