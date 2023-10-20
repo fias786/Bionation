@@ -112,6 +112,7 @@ The project currently does the following things.
 - Integration with global Biodiversity platforms to allow users to detect and post observations.
 - Integration with global Biodiversity platforms to allow users to submit and answer questions.
 - Gamify all aspects of App usage and reward users with badges for all activities. Add a leaderboard section to allow users to visualize their exploration and community contributions.
+- Leverage IBM WatsonXGen AI platform more and fine tune foundational models to allow users to interactively explore Biodiversity topics using natural language prompts.
 - Enhance use of Gen AI to make the learning feature of the app more interactive.
 - Allow users to follow locations of interest and receive notifications when observations are added to the location.
 - Notify users when news articles are available.
