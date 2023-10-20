@@ -218,11 +218,12 @@ In the future we plan to...
 
 ### Versioning
 
-We have lastest version of app
+
 
 ### License
 
-This project is licensed under the MIT License
+This project is licensed under the MIT License.
+Use of iNaturalist API is governed by iNaturalist terms available at https://www.inaturalist.org/pages/terms.
 
 
 
