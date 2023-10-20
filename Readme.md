@@ -147,13 +147,13 @@ In the future we plan to...
 
   <p>
     <a>
-      <img src="https://github.com/fias786/Bionation/blob/master/images/camera1.png?raw=true" width="100px" height="225px" alt="Camera 1" >
+      <img src="https://github.com/fias786/Bionation/blob/master/images/cameraimage1.png?raw=true" width="100px" height="225px" alt="Camera 1" >
     </a>
     <a>
-      <img src="https://github.com/fias786/Bionation/blob/master/images/camera2.png?raw=true" width="100px" height="225px" alt="Camera 2" >
+      <img src="https://github.com/fias786/Bionation/blob/master/images/cameraimage2.png?raw=true" width="100px" height="225px" alt="Camera 2" >
     </a>
     <a>
-      <img src="https://github.com/fias786/Bionation/blob/master/images/camera3.png?raw=true" width="100px" height="225px" alt="Camera 3" >
+      <img src="https://github.com/fias786/Bionation/blob/master/images/cameraimage3.png?raw=true" width="100px" height="225px" alt="Camera 3" >
     </a>
   </p>
 
