@@ -1,11 +1,28 @@
-<p align="center">
-    Bionation is an android™ app for Biodiversity!
-    <br />
-    <a href="https://github.com/fias786/Bionation/raw/master/apk/Bionationv5.apk?download="><strong>Download Now</strong></a>
-    <br />
-  </p>
-  
-## Problem Statement
+# Bionation
+
+- [Project summary](#project-summary)
+  - [The issue we are hoping to solve](#the-issue-we-are-hoping-to-solve)
+  - [How our technology solution can help](#how-our-technology-solution-can-help)
+  - [Our idea](#our-idea)
+- [Technology implementation](#technology-implementation)
+  - [IBM AI service(s) used](#ibm-ai-services-used)
+  - [Other technology used](#other-technology-used)
+  - [Solution architecture](#solution-architecture)
+- [Presentation materials](#presentation-materials)
+  - [Solution demo video](#solution-demo-video)
+  - [Project development roadmap](#project-development-roadmap)
+- [Additional details](#additional-details)
+  - [How to run the project](#how-to-run-the-project)
+  - [Live demo](#live-demo)
+- [About this template](#about-this-template)
+  - [Contributing](#contributing)
+  - [Versioning](#versioning)
+  - [License](#license)
+
+
+## Project summary
+
+### The issue we are hoping to solve
 
 - Biodiversity is the variety of life on Earth. Biodiversity forms the web of life that we depend on for so  many things – food, water, medicine, a stable climate, economic growth, among others. Over half of global GDP is dependent on nature.
 
@@ -20,8 +37,11 @@
   - https://naturecanada.ca/news/blog/auditor-general-biodiversity-loss-has-reached-crisis-proportions-national-and-international-responses-needed/
   - https://www.natureserve.org/bif
 
+### How our technology solution can help
 
-## The Solution & Idea
+REPLACE THIS SENTENCE with a short description of your team's solution, in about 10 words.
+
+### Our idea
 
 - The Convention on Biological Diversity (CBD) recognizes the importance of public education and  awareness. It emphasizes that without an awareness of the importance of biodiversity to human well-being, citizens and stakeholders are not likely to take the steps needed to mainstream biodiversity considerations into their daily lives and practices.
 
@@ -40,7 +60,58 @@
 
   - Receive notifications about news events.
 
-## App Layouts
+## Technology implementation
+
+### IBM AI service(s) used
+
+- [IBM Watsonx.ai Gen AI](https://www.ibm.com/products/watsonx-ai) - We have implemented in our explore setcion of Bionation app for generating facts about Observed species, we are providing prompts internally. We have tune the model and temperature for getting best results.
+- [Watson Speech to Text](https://cloud.ibm.com/catalog/services/speech-to-text) - We have implemented in our explore setcion's search area, where you just need to click on mic icon and it'll ask you for your inputs such as species name and after taking input it will pass it to search area for searching species.
+
+### Other technology used
+
+- Android Native
+- Google Maps
+- Tensorflow
+- IBM Speech to Text (STT)
+- IBM Watsonx.ai (Gen AI)
+- News API
+- Java
+- Retrofit
+
+<p>
+  <a>
+    <img src="https://github.com/fias786/Bionation/blob/master/images/technology.png?raw=true"  alt="Technologies Used" >
+  </a>
+</p>
+
+### Solution architecture
+
+## Presentation materials
+
+
+### Solution demo video
+
+![Watch the video](https://youtu.be/12xFrsdh5WQ?si=gaYqRXl9ZJcXURXV)
+
+### Project development roadmap
+
+The project currently does the following things.
+
+- Integration with global Biodiversity platforms to allow users to detect and post observations.
+- Integration with global Biodiversity platforms to allow users to submit and answer questions.
+- Gamify all aspects of App usage and reward users with badges for all activities. Add a leaderboard section to allow users to visualize their exploration and community contributions.
+- Enhance use of Gen AI to make the learning feature of the app more interactive.
+- Allow users to follow locations of interest and receive notifications when observations are added to the location.
+- Notify users when news articles are available.
+
+In the future we plan to...
+
+ - We just really want this project to have a positive impact on people's lives! Still, we would love to make it more scalable & cross-platform so that the user interaction increases to a great extent :)
+ - Multi-language support in app.
+
+## Additional details
+
+### App Layouts
 
 - #### Explore Observations
 
@@ -96,36 +167,50 @@
     </a>
   </p>
 
-## Technologies Used
+### How to run the project
 
-- Android Native
-- Google Maps
-- Tensorflow
-- IBM Speech to Text (STT)
-- IBM Watsonx.ai (Gen AI)
-- News API
-- Java
-- Retrofit
+ - Step 1: You should have Android Studio installed, otherwise you download from here [Android Studio](https://developer.android.com/studio)
+ - Step 2: Close this repo and open with Android Sudio.
+ - Step 3: Add your own api key details related to different services like google map, IBM speech to text, IBM Watesonx.ai Gen AI, and NewsAPI.
+ - Step 4: Connect your phone to your pc.
+ - Step 5: Build your gradle files
+ - Step 6: Click on run button in Android Studio, app will be installed in your phone.
 
-<p>
-  <a>
-    <img src="https://github.com/fias786/Bionation/blob/master/images/technology.png?raw=true"  alt="Technologies Used" >
-  </a>
+
+### Live demo
+
+<p align="center">
+    Bionation is an android™ app for Biodiversity!
+    <br />
+    <a href="https://github.com/fias786/Bionation/raw/master/apk/Bionationv5.apk?download="><strong>Download Now</strong></a>
+    <br />
 </p>
 
-## Roadmap
+ - Step 1: First, you have to download and install an apk from above given link
+ - Step 2: Please ensure your GPS & Internet On 
+ - Step 3: Launch an App
+ - Step 4: Give asked permissions related to Location, Camera, and Audio.
+ - Step 5: In explore section, you will able to see observations of different species arround yor on Google map and click on observation tile to get deatils of species. You can also search for specific species.
+ - Step 6: In camera section, you can detect species using camera. After species is detected, you can know more about that species by clicking capture button there.
+ - Step 7: In News section, you can see news & updates regarding Biodiversity.
+ - Step 8: In Badges section, you can see your see camera detected species and you'll get badges based on that.
 
-- Integration with global Biodiversity platforms to allow users to detect and post observations.
-- Integration with global Biodiversity platforms to allow users to submit and answer questions.
-- Gamify all aspects of App usage and reward users with badges for all activities. Add a leaderboard section to allow users to visualize their exploration and community contributions.
-- Enhance use of Gen AI to make the learning feature of the app more interactive.
-- Allow users to follow locations of interest and receive notifications when observations are added to the location.
-- Notify users when news articles are available.
 
-## What's next for Bionation
+## About this template
 
- - We just really want this project to have a positive impact on people's lives! Still, we would love to make it more scalable & cross-platform so that the user interaction increases to a great extent :)
- - Multi-language support in app.
+### Contributing
+
+ - Gowhar Jan
+ - Abhijeet Ghosh
+ - Saif Ali
+
+### Versioning
+
+We have version lastest version of app
+
+### License
+
+This project is licensed under the MIT License
 
 
 
