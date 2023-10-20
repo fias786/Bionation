@@ -85,6 +85,11 @@ REPLACE THIS SENTENCE with a short description of your team's solution, in about
 </p>
 
 ### Solution architecture
+<p>
+  <a>
+    <img src="https://github.com/fias786/Bionation/blob/master/images/SolutionArchitecture.png"  alt="Solution Architecture" >
+  </a>
+</p>
 
 ## Presentation materials
 
