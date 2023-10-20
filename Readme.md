@@ -85,11 +85,12 @@ REPLACE THIS SENTENCE with a short description of your team's solution, in about
 </p>
 
 ### Solution architecture
-<p>
-  <a>
-    <img src="https://github.com/fias786/Bionation/blob/master/images/SolutionArchitecture.png?raw=true"  alt="Solution Architecture" >
-  </a>
-</p>
+1. The user opens Bionation app.
+2. User navigates to the Explore section and enters name of a species. A lookup is performed for the name on iNaturalist platform and details are retreived and shown to user. A REST API call is made to WatsonX LLM to generate Biodiversity related response for the name entered by user. Response is shown to user. 
+3. User opens the Camera section and detects a plant or an insect, etc. Object is detected in real time and its scientific name as well as common name is displayed.
+4. User taps the capture button, REST API call is made to iNaturalist and Wikipedia with detected name as input. Details are retreived and shown to user.
+5. Each detection contributes to engagement level that is eventually rewarded by a badge. The app stores the detection count locally on the device.
+6. User navigates to Badges section to view detections performed and badges received.
 
 ## Presentation materials
 
