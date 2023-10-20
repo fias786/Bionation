@@ -91,7 +91,7 @@ REPLACE THIS SENTENCE with a short description of your team's solution, in about
 
 ### Solution demo video
 
-![Watch the video](https://youtu.be/12xFrsdh5WQ?si=gaYqRXl9ZJcXURXV)
+[![Watch the video](https://github.com/fias786/Bionation/blob/master/images/thumbnail1.png)](https://youtu.be/12xFrsdh5WQ?si=gaYqRXl9ZJcXURXV)
 
 ### Project development roadmap
 
